@@ -5,7 +5,6 @@ from s3200 import constants
 from collections import OrderedDict
 from datetime import datetime
 
-
 #---HELPER METHODS---
 def calculate_checksum(data_bytes: bytes):
     """ Calculates the checksum of the given data.
@@ -138,11 +137,13 @@ class FrameSyntaxError(S3200Error):
     """Exception raised when the syntax or value of a frame is not correct."""
 
 
-class ValueAddressNotDefinedError(S3200Error):
+class ValueNotDefinedError(S3200Error):
     """Exception raised when the value asked for is not defined id address_dict."""
 
-class CommandAddressNotDefinedError(S3200Error):
+
+class CommandNotDefinedError(S3200Error):
     """Exception raised when the command asked for is not defined id command_dict."""
+
 
 class CommunicationError(S3200Error):
     """Exception raised when the command asked for is not defined id command_dict."""

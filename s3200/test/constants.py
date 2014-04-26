@@ -1,30 +1,11 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 
-from struct import Struct
+""" A simplified constants.py for testing
+
+"""
+
 from collections import OrderedDict
-
-#---STATIC VARIABLES---
-START_BYTES = b'\x02\xFD'
-
-#List of bytes to escape. Reverse key and value, to get unescape list
-ESCAPE_LIST = OrderedDict(
-    [
-        (b'\x2B', b'\x2B\x00'),
-        (b'\xFE', b'\xFE\x00'),
-        (b'\x02', b'\x02\x00'),
-        (b'\x11', b'\xFE\x12'),
-        (b'\x13', b'\xFE\x14'),
-    ]
-)
-UNESCAPE_LIST = OrderedDict((v, k) for k, v in ESCAPE_LIST.items())
-
-#The bytes which identify that something is escaped
-ESCAPED_IDENTIFIER = bytes([0x02, 0xFE, 0x2B])
-
-#Structs
-StructShort = Struct('!h')
-StructDate = Struct('!7b')
 
 #The address of the actual values
 VALUE_DEFINITIONS = OrderedDict({
@@ -92,106 +73,10 @@ VALUE_GROUP_DEFINITIONS = OrderedDict({
 
 })
 
-COMMAND_DEFINITIONS = {
-    'echo_test':   {
-        'address': b'\x22',
-        'description': 'Returns the given frame. For testing the connection',
-    },
-    'get_value':   {
-        'address': b'\x30',
-        'description': '',
-    },
-    'get_available_value':   {
-        'address': b'\x31',
-        'description': '',
-    },
-    'get_next_available_value':   {
-        'address': b'\x32',
-        'description': '',
-    },
-    'get_menu_item':   {
-        'address': b'\x37',
-        'description': '',
-    },
-    'get_next_menu_item':   {
-        'address': b'\x38',
-        'description': '',
-    },
-    'set_setting':   {
-        'address': b'\x39',
-        'description': '',
-    },
-    'get_configuration':   {
-        'address': b'\x40',
-        'description': '',
-    },
-    'get_version':   {
-        'address': b'\x41',
-        'description': '',
-    },
-    'get_time_slot':   {
-        'address': b'\x42',
-        'description': '',
-    },
-    'get_next_time_slot':   {
-        'address': b'\x43',
-        'description': '',
-    },
-    'get_digital_output':   {
-        'address': b'\x44',
-        'description': '',
-    },
-    'get_analog_output':   {
-        'address': b'\x45',
-        'description': '',
-    },
-    'get_digital_input':   {
-        'address': b'\x46',
-        'description': '',
-    },
-    'get_error':   {
-        'address': b'\x47',
-        'description': '',
-    },
-    'get_next_error':   {
-        'address': b'\x48',
-        'description': '',
-    },
-    'set_time_slot':   {
-        'address': b'\x50',
-        'description': '',
-    },
-    'get_heater_state':   {
-        'address': b'\x51',
-        'description': '',
-    },
-    'set_date':   {
-        'address': b'\x54',
-        'description': '',
-    },
-    'get_setting':   {
-        'address': b'\x55',
-        'description': '',
-    },
-    'manipulate_digital_output':   {
-        'address': b'\x58',
-        'description': '',
-    },
-    'manipulate_analog_output':   {
-        'address': b'\x59',
-        'description': '',
-    },
-    'manipulate_digital_input':   {
-        'address': b'\x5A',
-        'description': '',
-    },
-    'get_force':   {
-        'address': b'\x5E',
-        'description': '',
-    },
-    'set_force':   {
-        'address': b'\x7E',
-        'description': '',
-    },
 
-}
+
+
+
+
+
+

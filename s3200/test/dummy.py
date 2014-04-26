@@ -1,22 +1,24 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
+from collections import OrderedDict
 
 import re
 from s3200 import core
 
 
+# noinspection PyPep8Naming,PyPep8Naming
 class DummySerial(object):
     """ A dummy serial port implementation that behaves like a simplified connected s3200 """
 
-    COMM_LIST = {
+    COMM_LIST = OrderedDict({
         # value working hours answer 55
         '02 FD 00 03 30 00 62 F2': b'\x02\xfd\x00\x030\x007\r',
         # simulate transmission error wrong checksum when asked for 00 59 heater_circuit_18_is
         '02 FD 00 03 30 00 59 BF': b'\x02\xfd\x00\x02\x000\x10h',
         # other values answer 4322
-        '02 FD .. .. 30 (?!(00 62 F2)).*': b'\x02\xFD\x00\x03\x30\x10\xE2\x42',
+        '02 FD .. .. 30 (?!(00 62 F2))(?!(00 59 BF)).*': b'\x02\xFD\x00\x03\x30\x10\xE2\x42',
 
-    }
+    })
 
     def __init__(self, port=None, baud_rate=None, eight_bits=None, parity=None, stop_bits=None, timeout=None):
         self.in_buffer = bytearray()
@@ -35,7 +37,9 @@ class DummySerial(object):
         self.do_processing()
 
     def read(self, length=1):
-        """dummy read function"""
+        """dummy read function
+        :param length: bytes to read
+        """
         ret = self.in_buffer[0:length]
         self.in_buffer = self.in_buffer[length:]
         return ret
@@ -48,4 +52,5 @@ class DummySerial(object):
                 self.out_buffer.clear()
                 for i in value:
                     self.in_buffer.append(i)
+                #print("Dummy in: {0} out: {1}".format(str(hex_string), str(value)))
                 return

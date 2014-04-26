@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-import re
 
-from serial import Serial, EIGHTBITS, PARITY_NONE, STOPBITS_ONE
+#from serial import Serial, EIGHTBITS, PARITY_NONE, STOPBITS_ONE
+
 from s3200 import constants, core
 from s3200.core import CommunicationError
-from s3200.dummy import DummySerial
+from s3200.test.dummy import DummySerial
+
 
 class Frame(object):
     """ An class representing a s3200 communication frame.
@@ -51,8 +52,9 @@ class Frame(object):
 
         #check start bytes
         if not start_bytes == constants.START_BYTES:
-            raise CommunicationError("Start bytes must be: {0} but are: {1}".format(core.get_hex_from_byte(constants.START_BYTES),
-                                                                         core.get_hex_from_byte(start_bytes)))
+            raise CommunicationError("Start bytes must be: {0} but are: {1}".format(
+                core.get_hex_from_byte(constants.START_BYTES),
+                core.get_hex_from_byte(start_bytes)))
 
         #check checksum
         calculated_checksum = core.calculate_checksum(start_bytes + length_bytes + command_byte + payload_bytes)
@@ -98,7 +100,7 @@ class Connection(object):
         """ Sends one frame and receives the answer frame
 
         :param frame: the frame to send
-        :return: the answer frame
+        :return frame: the answer frame
         :raise: different exceptions that could occur during communication
         """
 
@@ -118,9 +120,9 @@ class Connection(object):
             #make a frame from the bytes
             answer_frame = Frame.from_bytes(answer_bytes)
 
-        except Exception:
+        except Exception as e:
             serial_port.flushInput()
-            raise
+            raise e
 
         finally:
             serial_port.close()
