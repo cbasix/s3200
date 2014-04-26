@@ -66,3 +66,27 @@ class S3200(object):
         else:
             return value
 
+    def test_connection(self):
+        """ Tests the connection.
+
+            Tests the connection by sending a random string and reading it back.
+
+            :return: True if connection was successful. False otherwise.
+        """
+
+        command_address = self.command_definitions['test_connection']['address']
+        random_string = core.get_random_string(15)
+        payload = core.get_bytes_from_string(random_string)
+
+        send_frame = net.Frame(command_address, payload)
+        try:
+            answer_frame = self.connection.send_request(send_frame)
+        except core.CommunicationError as e:
+            return False
+
+        return_string = core.get_string_from_bytes(answer_frame.payload)
+
+        if return_string == random_string:
+            return True
+
+        return False

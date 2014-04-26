@@ -17,6 +17,8 @@ class DummySerial(object):
         '02 FD 00 03 30 00 59 BF': b'\x02\xfd\x00\x02\x000\x10h',
         # other values answer 4322
         '02 FD .. .. 30 (?!(00 62 F2))(?!(00 59 BF)).*': b'\x02\xFD\x00\x03\x30\x10\xE2\x42',
+        # answer to 22 test
+        '02 FD .. .. 22 .*': 'return',
 
     })
 
@@ -49,7 +51,12 @@ class DummySerial(object):
             r = re.compile(key)
             hex_string = core.get_hex_from_byte(bytes(self.out_buffer)).upper()
             if r.match(hex_string):
+
+                if value == 'return':
+                    value = bytes(self.out_buffer)
+
                 self.out_buffer.clear()
+
                 for i in value:
                     self.in_buffer.append(i)
                 #print("Dummy in: {0} out: {1}".format(str(hex_string), str(value)))

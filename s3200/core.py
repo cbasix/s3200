@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
+import random
+import string
 
 from s3200 import constants
 from collections import OrderedDict
@@ -77,6 +79,26 @@ def get_short_from_integer(integer: int):
     return temp_bytes
 
 
+def get_string_from_bytes(byte_data: bytes):
+    """ String from bytes.
+
+    :param byte_data: data to convert
+    """
+
+    string_data = byte_data.decode(encoding='ascii')
+    return string_data
+
+
+def get_bytes_from_string(string_data: str):
+    """ Bytes from string.
+
+    :param string_data: data to convert
+    """
+
+    byte_data = string_data.encode(encoding='ascii')
+    return byte_data
+
+
 def get_hex_from_byte(byte_data: bytes):
     """ Convert bytes to a hex string of format 0A FD C3.
 
@@ -112,6 +134,15 @@ def replace_all(data: bytes, dic: OrderedDict):
     for i, j in dic.items():
         data = data.replace(i, j)
     return data
+
+
+def get_random_string(size=10, chars=string.ascii_letters + string.digits):
+    """ Get random string.
+
+    :param size: length of the random string
+    :param chars: chars the random string should contain default is ascii_letters + digits
+    """
+    return ''.join(random.choice(chars) for _ in range(size))
 
 
 class S3200Error(Exception):

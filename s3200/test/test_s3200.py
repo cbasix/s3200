@@ -28,3 +28,5 @@ class TestS3200(TestCase):
         self.assertEquals(t, 432.2)
         #print(str(t[0]) + ": " + str(t[1]))
 
+    def test_test_connection(self):
+        self.s.test_connection()

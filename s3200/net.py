@@ -138,7 +138,7 @@ class Connection(object):
         length_bytes = serial_port.read(2)
 
         if len(length_bytes) != 2:
-            raise IOError("Didn't get length bytes. Maybe timeout, or other reading error.")
+            raise core.CommunicationError("Didn't get length bytes. Maybe timeout, or other reading error.")
 
         length = core.get_integer_from_short(length_bytes)  # lengthBytes[-1]
 

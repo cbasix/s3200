@@ -93,7 +93,7 @@ VALUE_GROUP_DEFINITIONS = OrderedDict({
 })
 
 COMMAND_DEFINITIONS = {
-    'echo_test':   {
+    'test_connection':   {
         'address': b'\x22',
         'description': 'Returns the given frame. For testing the connection',
     },
