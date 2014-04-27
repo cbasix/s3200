@@ -2,10 +2,9 @@
 # -*- coding: UTF-8 -*-
 from collections import OrderedDict
 from unittest import TestCase
-from s3200.core import CommunicationError
-from s3200.net import Connection, Frame
 from s3200.test import constants
 from s3200.obj import S3200
+import datetime
 
 
 class TestS3200(TestCase):
@@ -29,4 +28,15 @@ class TestS3200(TestCase):
         #print(str(t[0]) + ": " + str(t[1]))
 
     def test_test_connection(self):
-        self.s.test_connection()
+        self.assertTrue(self.s.test_connection())
+
+    def test_get_date(self):
+        self.assertEquals(self.s.get_date(), datetime.datetime(2010, 11, 21, 18, 31))
+
+    def test_get_version(self):
+        self.assertEquals(self.s.get_version(), '50.04.04.14')
+
+    def test_get_errors(self):
+        self.s.get_errors()
+
+

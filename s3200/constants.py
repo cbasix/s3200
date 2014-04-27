@@ -99,7 +99,7 @@ COMMAND_DEFINITIONS = {
     },
     'get_value':   {
         'address': b'\x30',
-        'description': '',
+        'description': 'Read a value from the heater.',
     },
     'get_available_value':   {
         'address': b'\x31',
@@ -125,9 +125,9 @@ COMMAND_DEFINITIONS = {
         'address': b'\x40',
         'description': '',
     },
-    'get_version':   {
+    'get_version_and_date':   {
         'address': b'\x41',
-        'description': '',
+        'description': 'Get Version, Date and Time',
     },
     'get_time_slot':   {
         'address': b'\x42',
@@ -194,4 +194,23 @@ COMMAND_DEFINITIONS = {
         'description': '',
     },
 
+}
+
+ERROR_DEFINITION = {
+    #maybe the error number is 3 instead of 1 byte ... so start 0 is maybe right
+    'number': {'start': 2, 'end': 3},
+    'info_byte': {'start': 3, 'end': 4},
+    'status': {'start': 4, 'end': 5},
+    'datetime': {'start': 5, 'end': 12},
+    'text': {'start': 12, 'end': -1},
+}
+
+INFO_BYTE_DEFINITION = {
+    'is_ongoing': 0,
+    'is_at_heating_boiler': 1,
+    'is_at_ash_outlet': 2,
+    'is_at_environment': 3,
+    'is_dysfunction': 5,
+    'is_warning': 6,
+    'is_receipted': 7,
 }

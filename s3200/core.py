@@ -33,7 +33,7 @@ def get_date_from_byte(date_bytes: bytes):
         Example:
         00 1F 12 15 0B 07 0A
         Time: 00 1F 12 -> 18:31:00
-        Date: 15 0B 07 0A -> 21.11.; 7. Day of week = Sunday ; 2010
+        Date: 15 0B 07 0A -> 21.11.; 7. Day of week = Sunday ; (20)10
     """
 
     date_array = constants.StructDate.unpack(date_bytes)
@@ -44,7 +44,7 @@ def get_date_from_byte(date_bytes: bytes):
     day = date_array[3]
     month = date_array[4]
     # weekday = date_array[5] # 1=Monday 7=Sunday
-    year = date_array[6]
+    year = 2000 + date_array[6]  # 2000 + byte
 
     return datetime(year, month, day, hour, minute, second)
 
@@ -54,6 +54,10 @@ def get_integer_from_short(short_bytes: bytes):
 
     :param short_bytes: two bytes representing a short
     """
+
+    # allow to convert single byte values
+    if len(short_bytes) == 1:
+        short_bytes = b'\x00' + short_bytes
 
     if len(short_bytes) != 2:
         raise ShortUnpackError("2bytes input needed {0}bytes given".format(len(short_bytes)))
@@ -85,7 +89,7 @@ def get_string_from_bytes(byte_data: bytes):
     :param byte_data: data to convert
     """
 
-    string_data = byte_data.decode(encoding='ascii')
+    string_data = byte_data.decode(encoding='cp1252')
     return string_data
 
 
@@ -95,7 +99,7 @@ def get_bytes_from_string(string_data: str):
     :param string_data: data to convert
     """
 
-    byte_data = string_data.encode(encoding='ascii')
+    byte_data = string_data.encode(encoding='cp1252')
     return byte_data
 
 
@@ -106,6 +110,56 @@ def get_hex_from_byte(byte_data: bytes):
     """
     return ' '.join(['{:02x}'.format(i) for i in byte_data])
 
+
+def get_error_from_bytes(payload: bytes):
+    """ Get an error dict from bytes representation. """
+
+    number_def = constants.ERROR_DEFINITION['number']
+    info_byte_def = constants.ERROR_DEFINITION['info_byte']
+    status_def = constants.ERROR_DEFINITION['status']
+    datetime_def = constants.ERROR_DEFINITION['datetime']
+    text_def = constants.ERROR_DEFINITION['text']
+
+    number = get_integer_from_short(payload[number_def['start']:number_def['end']])
+    info_byte = payload[info_byte_def['start']:info_byte_def['end']]
+    status = get_integer_from_short(payload[status_def['start']:status_def['end']])
+    error_datetime = get_date_from_byte(payload[datetime_def['start']:datetime_def['end']])
+    text = get_string_from_bytes(payload[text_def['start']:text_def['end']])
+
+    is_ongoing = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_ongoing'])
+    is_at_heating_boiler = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_at_heating_boiler'])
+    is_at_ash_outlet = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_at_ash_outlet'])
+    is_at_environment = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_at_environment'])
+    is_dysfunction = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_dysfunction'])
+    is_warning = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_warning'])
+    is_receipted = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_receipted'])
+
+    return_dict = {
+        'number': number,
+        'status': status,
+        'status_name': '...',
+        'status_name_local': '...',
+        'datetime': error_datetime,
+        'text': text,
+
+        'is_ongoing': is_ongoing,
+        'is_at_heating_boiler': is_at_heating_boiler,
+        'is_at_ash_outlet': is_at_ash_outlet,
+        'is_at_environment': is_at_environment,
+        'is_dysfunction': is_dysfunction,
+        'is_warning': is_warning,
+        'is_receipted': is_receipted,
+    }
+
+    return return_dict
+
+def is_flag_set(byte: int, position_from_right):
+    if isinstance(byte, bytearray):
+        byte = int(byte[0])
+
+    offset = position_from_right
+    mask = 1 << (8 - offset)
+    return byte & mask
 
 def escape(data: bytes):
     """ Escape the given data according to the s3200 documentation.

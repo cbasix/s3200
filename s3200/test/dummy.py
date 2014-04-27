@@ -19,6 +19,16 @@ class DummySerial(object):
         '02 FD .. .. 30 (?!(00 62 F2))(?!(00 59 BF)).*': b'\x02\xFD\x00\x03\x30\x10\xE2\x42',
         # answer to 22 test
         '02 FD .. .. 22 .*': 'return',
+        # answer to 41 sw version and current datetime
+        '02 FD .. .. 41 .*': b'\x02\xFD\x00\x0C\x41\x50\x04\x04\x14\x00\x1F\x12\x15\x0B\x07\x0A\x38',
+        # error buffer get_error
+        '02 FD .. .. 47 .*': b'\x02\xFD\x00\x2D\x47\x01\x00\x01\x42\x04\x3A\x1C\x07\x03\x0C\x0C\x4B\x65\x73\x73\x65\
+\x6C\x74\x65\x6D\x70\x65\x72\x61\x74\x75\x72\x66\xFC\x68\x6C\x65\x72\x20\x66\x65\x68\
+\x6C\x65\x72\x68\x61\x66\x74\x87',
+        # error buffer get_next_error EMPTY
+        '02 FD .. .. 48 .*': b'\x02\xfd\x00\x01\x48\xda',
+                            #b'\x02\xFD\x00\x02\x47\xCE',
+                             #b'\x02\xFD\x00\x02\x00\x47\x00\xCE'
 
     })
 
@@ -59,5 +69,6 @@ class DummySerial(object):
 
                 for i in value:
                     self.in_buffer.append(i)
-                #print("Dummy in: {0} out: {1}".format(str(hex_string), str(value)))
+                print("Dummy in: {0} out: {1}".format(str(hex_string), str(value)))
                 return
+

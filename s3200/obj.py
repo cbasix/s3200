@@ -90,3 +90,67 @@ class S3200(object):
             return True
 
         return False
+
+    def get_version(self):
+        """ Gets the software version, date and time from the heater.
+
+        :return: A string containing the version number
+        """
+
+        command_address = self.command_definitions['get_version_and_date']['address']
+
+        send_frame = net.Frame(command_address)
+        answer_frame = self.connection.send_request(send_frame)
+
+        #first 4bytes are the software version the rest is for the date
+        version_bytes = answer_frame.payload[:4]
+
+        #convert into . separated string
+        version_string = '.'.join(['{:02x}'.format(i) for i in version_bytes])
+        return version_string
+
+    def get_date(self):
+        """ Gets the software version, date and time from the heater.
+
+        :return: A string containing the version number
+        """
+
+        command_address = self.command_definitions['get_version_and_date']['address']
+
+        send_frame = net.Frame(command_address)
+        answer_frame = self.connection.send_request(send_frame)
+
+        #first 4bytes are the software version the rest is for the date
+        date_bytes = answer_frame.payload[4:]
+
+        #convert into . separated string
+        return_date = core.get_date_from_byte(date_bytes)
+        return return_date
+
+    def get_errors(self):
+        """ Get all errors currently in the error buffer. """
+
+        command_start_address = self.command_definitions['get_error']['address']
+        command_next_address = self.command_definitions['get_next_error']['address']
+
+        send_frame = net.Frame(command_start_address)
+        answer_frame = self.connection.send_request(send_frame)
+
+        output = []
+
+        while answer_frame.payload != b'':
+            error = core.get_error_from_bytes(answer_frame.payload)
+            output.append(error)
+
+            send_frame = net.Frame(command_next_address)
+            answer_frame = self.connection.send_request(send_frame)
+
+        return output
+
+
+
+if __name__ == '__main__':
+    s = S3200('dummy',
+              value_definitions=constants.VALUE_DEFINITIONS,
+              value_group_definitions=constants.VALUE_GROUP_DEFINITIONS)
+    print("T:"+str(s.get_errors()))

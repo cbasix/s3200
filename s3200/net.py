@@ -27,7 +27,10 @@ class Frame(object):
         self.command = command
         self.payload = payload
 
-        if self.command is None:
+        if self.payload is None:
+            self.payload = b''
+
+        if self.command is None or len(self.command) < 1:
             raise core.FrameSyntaxError("Frame must have a command.")
 
     @staticmethod
@@ -61,8 +64,9 @@ class Frame(object):
 
         if not checksum_byte[0] == calculated_checksum[0]:
             raise CommunicationError(
-                "Checksum byte doesnt match. Received:{0} Calculated:{1}".format(
-                    core.get_hex_from_byte(checksum_byte), core.get_hex_from_byte(calculated_checksum)))
+                "Checksum byte doesnt match. Received:{0} Calculated:{1}. Complete frame:{2}".format(
+                   core.get_hex_from_byte(checksum_byte), core.get_hex_from_byte(calculated_checksum),
+                   core.get_hex_from_byte(frame_bytes)))
 
         #build return frame
         return Frame(command_byte, payload_bytes)
@@ -70,8 +74,15 @@ class Frame(object):
     #---METHODS---
     def to_bytes(self):
         """ Convert a frame object to its send ready byte representation. """
+
+        #None should be handled like no byte
+        if self.payload is None:
+            self.payload = b''
+
         #calculate length
-        length_bytes = core.get_short_from_integer(len(self.command) + len(self.payload))
+        length = len(self.command) + len(self.payload)
+
+        length_bytes = core.get_short_from_integer(length)
 
         #calculate checksum
         checksum = core.calculate_checksum(constants.START_BYTES + length_bytes + self.command + self.payload)
