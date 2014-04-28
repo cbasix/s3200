@@ -127,17 +127,13 @@ class S3200(object):
         command_start_address = self.command_definitions['get_error']['address']
         command_next_address = self.command_definitions['get_next_error']['address']
 
-        answer_frame = self.connection.send(command_start_address)
-
         output = []
 
-        # TODO Find the right stop message
-        # TODO Generalize the function to use it for error, menu_item, time_slot and available_value
-        while answer_frame.payload != b'':
-            error = core.get_error_from_bytes(answer_frame.payload)
-            output.append(error)
+        error_frames = self.connection.get_list(command_start_address, command_next_address)
 
-            answer_frame = self.connection.send(command_next_address)
+        for frame in error_frames:
+            error = core.get_error_from_bytes(frame.payload)
+            output.append(error)
 
         return output
 
@@ -151,8 +147,4 @@ class S3200(object):
 
         return return_dict
 
-# if __name__ == '__main__':
-#     s = S3200('dummy',
-#               value_definitions=constants.VALUE_DEFINITIONS,
-#               value_group_definitions=constants.VALUE_GROUP_DEFINITIONS)
-#     print("T:"+str(s.get_errors()))
+

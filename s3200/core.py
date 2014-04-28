@@ -22,7 +22,7 @@ def calculate_checksum(data_bytes: bytes):
     return bytes([crc])
 
 
-def get_date_from_byte(date_bytes: bytes):
+def get_date_day_time_from_byte(date_bytes: bytes):
     """ Get a date object from its 7byte representation.
 
     :param date_bytes: the 7 byte long representation of a date
@@ -36,7 +36,7 @@ def get_date_from_byte(date_bytes: bytes):
         Date: 15 0B 07 0A -> 21.11.; 7. Day of week = Sunday ; (20)10
     """
 
-    date_array = constants.StructDate.unpack(date_bytes)
+    date_array = constants.StructDateDayTime.unpack(date_bytes)
 
     second = date_array[0]
     minute = date_array[1]
@@ -45,6 +45,31 @@ def get_date_from_byte(date_bytes: bytes):
     month = date_array[4]
     # weekday = date_array[5] # 1=Monday 7=Sunday
     year = 2000 + date_array[6]  # 2000 + byte
+
+    return datetime(year, month, day, hour, minute, second)
+
+def get_date_time_from_byte(date_bytes: bytes):
+    """ Get a date object from its 6byte representation.
+
+    :param date_bytes: the 6 byte long representation of a date
+
+        Form:
+        seconds minutes hours day month weekday year
+
+        Example:
+        00 1F 12 15 0B 07 0A
+        Time: 00 1F 12 -> 18:31:00
+        Date: 15 0B 0A -> 21.11.(20)10
+    """
+
+    date_array = constants.StructDateTime.unpack(date_bytes)
+
+    second = date_array[0]
+    minute = date_array[1]
+    hour = date_array[2]
+    day = date_array[3]
+    month = date_array[4]
+    year = 2000 + date_array[5]  # 2000 + byte
 
     return datetime(year, month, day, hour, minute, second)
 
@@ -123,7 +148,7 @@ def get_error_from_bytes(payload: bytes):
     number = get_integer_from_short(payload[number_def['start']:number_def['end']])
     info_byte = payload[info_byte_def['start']:info_byte_def['end']]
     status = get_integer_from_short(payload[status_def['start']:status_def['end']])
-    error_datetime = get_date_from_byte(payload[datetime_def['start']:datetime_def['end']])
+    error_datetime = get_date_time_from_byte(payload[datetime_def['start']:datetime_def['end']])
     text = get_string_from_bytes(payload[text_def['start']:text_def['end']])
 
     is_ongoing = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_ongoing'])
@@ -153,13 +178,12 @@ def get_error_from_bytes(payload: bytes):
 
     return return_dict
 
-def is_flag_set(byte: int, position_from_right):
-    if isinstance(byte, bytearray):
-        byte = int(byte[0])
+def is_flag_set(flag_data_bytes: bytes, position_from_right):
+    flag_data = flag_data_bytes[0]
 
     offset = position_from_right
     mask = 1 << (8 - offset)
-    return byte & mask
+    return bool(flag_data & mask)
 
 def escape(data: bytes):
     """ Escape the given data according to the s3200 documentation.

@@ -24,7 +24,8 @@ ESCAPED_IDENTIFIER = bytes([0x02, 0xFE, 0x2B])
 
 #Structs
 StructShort = Struct('!h')
-StructDate = Struct('!7b')
+StructDateDayTime = Struct('!7b')
+StructDateTime = Struct('!6b')
 
 #The address of the actual values
 VALUE_DEFINITIONS = OrderedDict({
@@ -202,8 +203,8 @@ ERROR_DEFINITION = {
     'number': {'start': 2, 'end': 3},
     'info_byte': {'start': 3, 'end': 4},
     'status': {'start': 4, 'end': 5},
-    'datetime': {'start': 5, 'end': 12},
-    'text': {'start': 12, 'end': -1},
+    'datetime': {'start': 5, 'end': 11},
+    'text': {'start': 11, 'end': None},
 }
 
 INFO_BYTE_DEFINITION = {

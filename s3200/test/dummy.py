@@ -22,9 +22,10 @@ class DummySerial(object):
         # answer to 41 sw version and current datetime
         '02 FD .. .. 41 .*': b'\x02\xFD\x00\x0C\x41\x50\x04\x04\x14\x00\x1F\x12\x15\x0B\x07\x0A\x38',
         # error buffer get_error
-        '02 FD .. .. 47 .*': b'\x02\xFD\x00\x2D\x47\x01\x00\x01\x42\x04\x3A\x1C\x07\x03\x0C\x0C\x4B\x65\x73\x73\x65\
-\x6C\x74\x65\x6D\x70\x65\x72\x61\x74\x75\x72\x66\xFC\x68\x6C\x65\x72\x20\x66\x65\x68\
-\x6C\x65\x72\x68\x61\x66\x74\x87',
+        '02 FD .. .. 47 .*': b'\x02\xfd\x009G\x01\x00m\xa3\x01\x02\x00\xfe\x12\x0c\x04\x02\x00\x0cZ\xfcndversuch nicht gelungen von Hand Anheizen!\xbc',
+            #b'\x02\xFD\x00\x2D\x47\x01\x00\x01\x42\x04\x3A\x1C\x07\x03\x0C\x0C\x4B\x65\x73\x73\x65\
+#\x6C\x74\x65\x6D\x70\x65\x72\x61\x74\x75\x72\x66\xFC\x68\x6C\x65\x72\x20\x66\x65\x68\
+#\x6C\x65\x72\x68\x61\x66\x74\x87',
         # error buffer get_next_error EMPTY
         '02 FD .. .. 48 .*': b'\x02\xfd\x00\x01\x48\xda',
                             #b'\x02\xFD\x00\x02\x47\xCE',
@@ -40,8 +41,8 @@ class DummySerial(object):
         self.do_processing()
 
     def close(self):
-        self.in_buffer.clear()
-        self.out_buffer.clear()
+        self.in_buffer = bytearray() #  .clear()
+        self.out_buffer = bytearray() #  .clear()
 
     def write(self, write_bytes: bytes):
         for b in write_bytes:
@@ -65,7 +66,7 @@ class DummySerial(object):
                 if value == 'return':
                     value = bytes(self.out_buffer)
 
-                self.out_buffer.clear()
+                self.out_buffer = bytearray() #  .clear()
 
                 for i in value:
                     self.in_buffer.append(i)

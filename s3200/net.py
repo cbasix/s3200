@@ -1,7 +1,10 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
+try:
+    from serial import Serial, EIGHTBITS, PARITY_NONE, STOPBITS_ONE
+except:
+    print("WARN: Could not load serial module. Only dummy mode!")
 
-#from serial import Serial, EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 
 from s3200 import constants, core
 from s3200.core import CommunicationError
@@ -62,11 +65,12 @@ class Frame(object):
         #check checksum
         calculated_checksum = core.calculate_checksum(start_bytes + length_bytes + command_byte + payload_bytes)
 
+        #if len(payload_bytes) > 0:
         if not checksum_byte[0] == calculated_checksum[0]:
             raise CommunicationError(
                 "Checksum byte doesnt match. Received:{0} Calculated:{1}. Complete frame:{2}".format(
-                   core.get_hex_from_byte(checksum_byte), core.get_hex_from_byte(calculated_checksum),
-                   core.get_hex_from_byte(frame_bytes)))
+                    core.get_hex_from_byte(checksum_byte), core.get_hex_from_byte(calculated_checksum),
+                    core.get_hex_from_byte(frame_bytes)))
 
         #build return frame
         return Frame(command_byte, payload_bytes)
@@ -154,36 +158,43 @@ class Connection(object):
         frame_start_bytes = serial_port.read(2)
 
         #get length
-        length_bytes = serial_port.read(2)
+        length_bytes = Connection._read_escaped(serial_port, 2)
+        unescaped_length_bytes = core.unescape(length_bytes)
+        if len(unescaped_length_bytes) != 2:
+            raise core.CommunicationError("Didn't get 2 length bytes. Maybe timeout, or other reading error.")
 
-        if len(length_bytes) != 2:
-            raise core.CommunicationError("Didn't get length bytes. Maybe timeout, or other reading error.")
+        length = core.get_integer_from_short(unescaped_length_bytes)
 
-        length = core.get_integer_from_short(length_bytes)  # lengthBytes[-1]
-
-        #print('byte:'+str(lengthBytes)+' length:'+str(length))
-        #get command
-
-        # read until length is reached and pay attention to escaped bytes
-        to_read = length + 1  # +1 is for reading the checksum too
-        read_count = 0
-        read_bytes = bytearray()
-
-        while read_count < to_read:
-            # read one byte and check if it is a escaped one
-            read_byte = serial_port.read(1)[0]
-
-            # if the current byte is an escape identifier we need to read one byte more
-            if read_byte in constants.ESCAPED_IDENTIFIER:
-                to_read += 1
-
-            # append to content array and increase read_count
-            read_bytes.append(read_byte)
-            read_count += 1
-
-        # reassemble complete frame
+        read_bytes = Connection._read_escaped(serial_port, length)
         complete_frame = frame_start_bytes + length_bytes + read_bytes
 
         # print(convertToHexStr(completeFrame))
 
         return complete_frame
+
+    @staticmethod
+    def _read_escaped(serial_port, length):
+        my_byte = bytearray()
+
+        for i in range(length):
+            byte = serial_port.read(1)[0]
+            my_byte.append(byte)
+
+            if byte in constants.ESCAPED_IDENTIFIER:
+                second_byte = serial_port.read(1)[0]
+                my_byte.append(second_byte)
+
+        return my_byte
+
+    def get_list(self, command_start_address: bytes, command_next_address: bytes):
+        """ Get all items of a list """
+
+        output = []
+        answer_frame = self.send(command_start_address)
+
+        while len(answer_frame.payload) > 0:
+            output.append(answer_frame)
+
+            answer_frame = self.send(command_next_address)
+
+        return output
