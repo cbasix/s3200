@@ -184,7 +184,7 @@ class Connection(object):
                 second_byte = serial_port.read(1)[0]
                 my_byte.append(second_byte)
 
-        return my_byte
+        return bytes(my_byte)
 
     def get_list(self, command_start_address: bytes, command_next_address: bytes):
         """ Get all items of a list """
