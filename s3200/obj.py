@@ -118,7 +118,7 @@ class S3200(object):
         date_bytes = answer_frame.payload[4:]
 
         #convert into . separated string
-        return_date = core.get_date_from_byte(date_bytes)
+        return_date = core.get_date_day_time_from_byte(date_bytes)
         return return_date
 
     def get_errors(self):
