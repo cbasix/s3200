@@ -196,6 +196,7 @@ COMMAND_DEFINITIONS = {
 
 }
 
+# TODO Check definitions text is clearly wrong!
 ERROR_DEFINITION = {
     #maybe the error number is 3 instead of 1 byte ... so start 0 is maybe right
     'number': {'start': 2, 'end': 3},
