@@ -14,7 +14,7 @@ class TestConnection(TestCase):
 
         # Send normal request working hours
         f = Frame(b'\x30', b'\x00\x62')
-        return_frame = self.c.send_request(f)
+        return_frame = self.c.send_frame(f)
 
         self.assertEquals(return_frame.command, b'\x30')
         self.assertEquals(return_frame.payload, b'\x00\x37')
@@ -26,4 +26,4 @@ class TestConnection(TestCase):
         # return_value = c.send_request(f)
         # print('Is:'+return_value)
 
-        self.assertRaises(CommunicationError, self.c.send_request, f)
+        self.assertRaises(CommunicationError, self.c.send_frame, f)
