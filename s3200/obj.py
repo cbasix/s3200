@@ -54,8 +54,7 @@ class S3200(object):
         command_address = self.command_definitions['get_value']['address']
         value_address = value_definition['address']
 
-        send_frame = net.Frame(command_address, value_address)
-        answer_frame = self.connection.send_request(send_frame)
+        answer_frame = self.connection.send(command_address, value_address)
 
         value = core.get_integer_from_short(answer_frame.payload)
         value = value / value_definition['factor']
@@ -78,9 +77,8 @@ class S3200(object):
         random_string = core.get_random_string(15)
         payload = core.get_bytes_from_string(random_string)
 
-        send_frame = net.Frame(command_address, payload)
         try:
-            answer_frame = self.connection.send_request(send_frame)
+            answer_frame = self.connection.send(command_address, payload)
         except core.CommunicationError as e:
             return False
 
@@ -92,15 +90,13 @@ class S3200(object):
         return False
 
     def get_version(self):
-        """ Gets the software version, date and time from the heater.
+        """ Gets the software version from the heater.
 
-        :return: A string containing the version number
+        :return: A string containing the version
         """
 
         command_address = self.command_definitions['get_version_and_date']['address']
-
-        send_frame = net.Frame(command_address)
-        answer_frame = self.connection.send_request(send_frame)
+        answer_frame = self.connection.send(command_address)
 
         #first 4bytes are the software version the rest is for the date
         version_bytes = answer_frame.payload[:4]
@@ -110,15 +106,13 @@ class S3200(object):
         return version_string
 
     def get_date(self):
-        """ Gets the software version, date and time from the heater.
+        """ Gets the date and time from the heater.
 
-        :return: A string containing the version number
+        :return: A datetime object
         """
 
         command_address = self.command_definitions['get_version_and_date']['address']
-
-        send_frame = net.Frame(command_address)
-        answer_frame = self.connection.send_request(send_frame)
+        answer_frame = self.connection.send(command_address)
 
         #first 4bytes are the software version the rest is for the date
         date_bytes = answer_frame.payload[4:]
@@ -133,24 +127,32 @@ class S3200(object):
         command_start_address = self.command_definitions['get_error']['address']
         command_next_address = self.command_definitions['get_next_error']['address']
 
-        send_frame = net.Frame(command_start_address)
-        answer_frame = self.connection.send_request(send_frame)
+        answer_frame = self.connection.send(command_start_address)
 
         output = []
 
+        # TODO Find the right stop message
+        # TODO Generalize the function to use it for error, menu_item, time_slot and available_value
         while answer_frame.payload != b'':
             error = core.get_error_from_bytes(answer_frame.payload)
             output.append(error)
 
-            send_frame = net.Frame(command_next_address)
-            answer_frame = self.connection.send_request(send_frame)
+            answer_frame = self.connection.send(command_next_address)
 
         return output
 
+    def get_configuration(self):
+        """ Get the active and connected boilers, heating circuits and solar. """
 
+        command_address = self.command_definitions['get_configuration']['address']
+        answer_frame = self.connection.send(command_address)
 
-if __name__ == '__main__':
-    s = S3200('dummy',
-              value_definitions=constants.VALUE_DEFINITIONS,
-              value_group_definitions=constants.VALUE_GROUP_DEFINITIONS)
-    print("T:"+str(s.get_errors()))
+        return_dict = core.get_configuration_from_bytes(answer_frame.payload)
+
+        return return_dict
+
+# if __name__ == '__main__':
+#     s = S3200('dummy',
+#               value_definitions=constants.VALUE_DEFINITIONS,
+#               value_group_definitions=constants.VALUE_GROUP_DEFINITIONS)
+#     print("T:"+str(s.get_errors()))
