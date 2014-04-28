@@ -178,11 +178,18 @@ def get_error_from_bytes(payload: bytes):
 
     return return_dict
 
+def get_configuration_from_bytes():
+    number_def = constants.ERROR_DEFINITION['number']
+    info_byte_def = constants.ERROR_DEFINITION['info_byte']
+    status_def = constants.ERROR_DEFINITION['status']
+
+    # TODO implement
+
 def is_flag_set(flag_data_bytes: bytes, position_from_right):
     flag_data = flag_data_bytes[0]
 
     offset = position_from_right
-    mask = 1 << (8 - offset)
+    mask = 1 << ((8 * len(flag_data_bytes)) - offset)
     return bool(flag_data & mask)
 
 def escape(data: bytes):

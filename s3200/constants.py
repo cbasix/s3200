@@ -216,3 +216,11 @@ INFO_BYTE_DEFINITION = {
     'is_warning': 6,
     'is_receipted': 7,
 }
+
+CONFIGURATION_DEFINITION = {
+    'boiler': {'start': 2, 'end': 3},
+    'heater_circuit': {'start': 3, 'end': 4},
+    'fernversteller': {'start': 4, 'end': 5},
+    'solar': {'start': 4, 'end': 5},
+     # TODO Set the right values
+}

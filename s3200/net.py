@@ -165,7 +165,7 @@ class Connection(object):
 
         length = core.get_integer_from_short(unescaped_length_bytes)
 
-        read_bytes = Connection._read_escaped(serial_port, length)
+        read_bytes = Connection._read_escaped(serial_port, length + 1)  # +1 for read the checksum too
         complete_frame = frame_start_bytes + length_bytes + read_bytes
 
         # print(convertToHexStr(completeFrame))
