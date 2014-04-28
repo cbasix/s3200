@@ -107,7 +107,15 @@ class Connection(object):
     def __init__(self, serial_port_name="/dev/ttyAMA0"):
         self.serial_port_name = serial_port_name
 
-    def send_request(self, frame):
+    def send(self, command: bytes=None, payload: bytes=None):
+        """ Shortcut for send_frame. Builds the Frame object and sends it. """
+
+        frame = Frame(command, payload)
+        return_frame = self.send_frame(frame)
+
+        return return_frame
+
+    def send_frame(self, frame):
         """ Sends one frame and receives the answer frame
 
         :param frame: the frame to send
