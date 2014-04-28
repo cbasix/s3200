@@ -36,7 +36,7 @@ class TestS3200(TestCase):
     def test_get_version(self):
         self.assertEquals(self.s.get_version(), '50.04.04.14')
 
-    def test_get_errors(self):
-        self.s.get_errors()
+    #def test_get_errors(self):
+    #    self.s.get_errors()
 
 
