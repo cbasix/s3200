@@ -15,8 +15,8 @@ class TestS3200(TestCase):
 
     def test_get_value_list(self):
         t = self.s.get_value_list('boiler_1', with_local_name=True)
-        self.assertEquals(t, OrderedDict([('boiler_1_temperature', ('Boilertemperatur 1', 2161.0)),
-                                        ('boiler_1_pump', ('Boilerpumpenansteuerung 1', 4322.0))]))
+        self.assertEquals(OrderedDict([('boiler_1_temperature', ('Boilertemperatur 1', 2161.0)),
+                                        ('boiler_1_pump', ('Boilerpumpenansteuerung 1', 4322.0))]), t)
         #print(t)
         #for k, v in t.items():
         #    print(str(v[0]) + ": " + str(v[1]))
@@ -24,19 +24,25 @@ class TestS3200(TestCase):
     def test_get_value(self):
         t = self.s.get_value('residual_oxygen')
         #print(t)
-        self.assertEquals(t, 432.2)
+        self.assertEquals( 432.2, t)
         #print(str(t[0]) + ": " + str(t[1]))
 
     def test_test_connection(self):
         self.assertTrue(self.s.test_connection())
 
     def test_get_date(self):
-        self.assertEquals(self.s.get_date(), datetime.datetime(2010, 11, 21, 18, 31))
+        self.assertEquals(datetime.datetime(2010, 11, 21, 18, 31), self.s.get_date())
 
     def test_get_version(self):
-        self.assertEquals(self.s.get_version(), '50.04.04.14')
+        self.assertEquals('50.04.04.14', self.s.get_version())
 
     def test_get_errors(self):
         self.s.get_errors()
+
+    def test_get_state(self):
+        self.assertEqual('STÖRUNG', self.s.get_state())
+
+    def test_get_mode(self):
+        self.assertEqual('Übergangsbetr', self.s.get_mode())
 
 
