@@ -147,4 +147,20 @@ class S3200(object):
 
         return return_dict
 
+    def get_state(self):
 
+        command_address = self.command_definitions['get_heater_state_and_mode']['address']
+        answer_frame = self.connection.send(command_address)
+
+        state = core.get_state_from_bytes(answer_frame.payload)
+
+        return state
+
+    def get_mode(self):
+
+        command_address = self.command_definitions['get_heater_state_and_mode']['address']
+        answer_frame = self.connection.send(command_address)
+
+        mode = core.get_mode_from_bytes(answer_frame.payload)
+
+        return mode
