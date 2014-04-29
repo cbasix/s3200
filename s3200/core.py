@@ -1,166 +1,294 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
+import random
+import string
 
+from s3200 import constants
 from collections import OrderedDict
-from s3200 import constants, core, net
+from datetime import datetime
+
+#---HELPER METHODS---
+def calculate_checksum(data_bytes: bytes):
+    """ Calculates the checksum of the given data.
+
+    :param data_bytes:
+    """
+    crc = 0x00
+
+    for aByte in data_bytes:
+        temp = (aByte * 2) & 0xFF
+        crc = crc ^ aByte ^ temp
+
+    return bytes([crc])
 
 
-class S3200(object):
-    """ A class representing a s3200 object. """
+def get_date_day_time_from_byte(date_bytes: bytes):
+    """ Get a date object from its 7byte representation.
 
-    def __init__(self, serial_port_name="/dev/ttyAMA0",
-                 value_definitions=constants.VALUE_DEFINITIONS,
-                 value_group_definitions=constants.VALUE_GROUP_DEFINITIONS,
-                 command_definitions=constants.COMMAND_DEFINITIONS):
+    :param date_bytes: the 7 byte long representation of a date
 
-        self.connection = net.Connection(serial_port_name=serial_port_name)
-        self.value_definitions = value_definitions
-        self.value_group_definitions = value_group_definitions
-        self.command_definitions = command_definitions
+        Form:
+        seconds minutes hours day month weekday year
 
-    def get_value_list(self, group=None, with_local_name=False):
-        """ Get a list of values.
+        Example:
+        00 1F 12 15 0B 07 0A
+        Time: 00 1F 12 -> 18:31:00
+        Date: 15 0B 07 0A -> 21.11.; 7. Day of week = Sunday ; (20)10
+    """
 
-        :param group: get only values of this group ex. 'heater', or 'boiler_1'
-        :param with_local_name: if yes each value returns a tuple with (local_name, value) instead of value only
-        """
-        return_list = OrderedDict()
-        if group is None:
-            definition_list = self.value_definitions
-        else:
-            definition_list = self.value_group_definitions[group]
+    date_array = constants.StructDateDayTime.unpack(date_bytes)
 
-        for definition_name in definition_list:
-            return_list[definition_name] = self.get_value(definition_name, with_local_name)
+    second = date_array[0]
+    minute = date_array[1]
+    hour = date_array[2]
+    day = date_array[3]
+    month = date_array[4]
+    # weekday = date_array[5] # 1=Monday 7=Sunday
+    year = 2000 + date_array[6]  # 2000 + byte
 
-        return return_list
+    return datetime(year, month, day, hour, minute, second)
 
-    def get_value(self, value_name: str, with_local_name: bool=False):
-        """ Get value by name.
+def get_date_time_from_byte(date_bytes: bytes):
+    """ Get a date object from its 6byte representation.
 
-        :param with_local_name: if yes output is a tuple with (name, value) instead of value only
-        :param value_name: name of the value as specified in address_dict
-        """
+    :param date_bytes: the 6 byte long representation of a date
 
-        if not self.value_definitions[value_name]:
-            raise core.ValueNotDefinedError("Address for value: '{0}' not defined in address_dict".format(value_name))
+        Form:
+        seconds minutes hours day month weekday year
 
-        if not self.command_definitions['get_value']:
-            raise core.CommandNotDefinedError("Address for command: 'get_value' not defined in command_dict")
+        Example:
+        00 1F 12 15 0B 07 0A
+        Time: 00 1F 12 -> 18:31:00
+        Date: 15 0B 0A -> 21.11.(20)10
+    """
 
-        value_definition = self.value_definitions[value_name]
+    date_array = constants.StructDateTime.unpack(date_bytes)
 
-        # Prepare the frame and get the answer
-        command_address = self.command_definitions['get_value']['address']
-        value_address = value_definition['address']
+    second = date_array[0]
+    minute = date_array[1]
+    hour = date_array[2]
+    day = date_array[3]
+    month = date_array[4]
+    year = 2000 + date_array[5]  # 2000 + byte
 
-        answer_frame = self.connection.send(command_address, value_address)
+    return datetime(year, month, day, hour, minute, second)
 
-        value = core.get_integer_from_short(answer_frame.payload)
-        value = value / value_definition['factor']
 
-        if with_local_name:
-            return_list = (value_definition['local_name'], value)
-            return return_list
-        else:
-            return value
+def get_integer_from_short(short_bytes: bytes):
+    """ Get a integer of its 2byte representation.
 
-    def test_connection(self):
-        """ Tests the connection.
+    :param short_bytes: two bytes representing a short
+    """
 
-            Tests the connection by sending a random string and reading it back.
+    # allow to convert single byte values
+    if len(short_bytes) == 1:
+        short_bytes = b'\x00' + short_bytes
 
-            :return: True if connection was successful. False otherwise.
-        """
+    if len(short_bytes) != 2:
+        raise ShortUnpackError("2bytes input needed {0}bytes given".format(len(short_bytes)))
 
-        command_address = self.command_definitions['test_connection']['address']
-        random_string = core.get_random_string(15)
-        payload = core.get_bytes_from_string(random_string)
+    temp_array = constants.StructShort.unpack(short_bytes)
+    integer = temp_array[0]
 
-        try:
-            answer_frame = self.connection.send(command_address, payload)
-        except core.CommunicationError as e:
-            return False
+    return integer
 
-        return_string = core.get_string_from_bytes(answer_frame.payload)
 
-        if return_string == random_string:
-            return True
+def get_short_from_integer(integer: int):
+    """ Get the 2byte representation of an integer.
 
-        return False
+    :param integer: an int to convert to a short. Max. 65025
+    """
 
-    def get_version(self):
-        """ Gets the software version from the heater.
+    if integer < 0 or integer > 65025:
+        raise ShortPackError("Given value: {0} could not be represented as 2byte short. " +
+                             "Allowed: 0 < value < 65025".format(integer))
 
-        :return: A string containing the version
-        """
+    temp_bytes = constants.StructShort.pack(integer)
 
-        command_address = self.command_definitions['get_version_and_date']['address']
-        answer_frame = self.connection.send(command_address)
+    return temp_bytes
 
-        #first 4bytes are the software version the rest is for the date
-        version_bytes = answer_frame.payload[:4]
 
-        #convert into . separated string
-        version_string = '.'.join(['{:02x}'.format(i) for i in version_bytes])
-        return version_string
+def get_string_from_bytes(byte_data: bytes):
+    """ String from bytes.
 
-    def get_date(self):
-        """ Gets the date and time from the heater.
+    :param byte_data: data to convert
+    """
 
-        :return: A datetime object
-        """
+    string_data = byte_data.decode(encoding='cp1252')
+    return string_data
 
-        command_address = self.command_definitions['get_version_and_date']['address']
-        answer_frame = self.connection.send(command_address)
 
-        #first 4bytes are the software version the rest is for the date
-        date_bytes = answer_frame.payload[4:]
+def get_bytes_from_string(string_data: str):
+    """ Bytes from string.
 
-        #convert into . separated string
-        return_date = core.get_date_day_time_from_byte(date_bytes)
-        return return_date
+    :param string_data: data to convert
+    """
 
-    def get_errors(self):
-        """ Get all errors currently in the error buffer. """
+    byte_data = string_data.encode(encoding='cp1252')
+    return byte_data
 
-        command_start_address = self.command_definitions['get_error']['address']
-        command_next_address = self.command_definitions['get_next_error']['address']
 
-        output = []
+def get_hex_from_byte(byte_data: bytes):
+    """ Convert bytes to a hex string of format 0A FD C3.
 
-        error_frames = self.connection.get_list(command_start_address, command_next_address)
+    :param byte_data: the byte data to convert to hex
+    """
+    return ' '.join(['{:02x}'.format(i) for i in byte_data])
 
-        for frame in error_frames:
-            error = core.get_error_from_bytes(frame.payload)
-            output.append(error)
 
-        return output
+def get_error_from_bytes(error_bytes: bytes):
+    """ Get an error dict from bytes representation. """
 
-    def get_configuration(self):
-        """ Get the active and connected boilers, heating circuits and solar. """
+    number_def = constants.ERROR_DEFINITION['number']
+    info_byte_def = constants.ERROR_DEFINITION['info_byte']
+    status_def = constants.ERROR_DEFINITION['status']
+    datetime_def = constants.ERROR_DEFINITION['datetime']
+    text_def = constants.ERROR_DEFINITION['text']
 
-        command_address = self.command_definitions['get_configuration']['address']
-        answer_frame = self.connection.send(command_address)
+    number = get_integer_from_short(error_bytes[number_def['start']:number_def['end']])
+    info_byte = error_bytes[info_byte_def['start']:info_byte_def['end']]
+    status = get_integer_from_short(error_bytes[status_def['start']:status_def['end']])
+    error_datetime = get_date_time_from_byte(error_bytes[datetime_def['start']:datetime_def['end']])
+    text = get_string_from_bytes(error_bytes[text_def['start']:text_def['end']])
 
-        return_dict = core.get_configuration_from_bytes(answer_frame.payload)
+    is_ongoing = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_ongoing'])
+    is_at_heating_boiler = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_at_heating_boiler'])
+    is_at_ash_outlet = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_at_ash_outlet'])
+    is_at_environment = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_at_environment'])
+    is_dysfunction = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_dysfunction'])
+    is_warning = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_warning'])
+    is_receipted = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_receipted'])
 
-        return return_dict
+    return_dict = {
+        'number': number,
+        'status': status,
+        'status_name': '...',
+        'status_name_local': '...',
+        'datetime': error_datetime,
+        'text': text,
 
-    def get_state(self):
+        'is_ongoing': is_ongoing,
+        'is_at_heating_boiler': is_at_heating_boiler,
+        'is_at_ash_outlet': is_at_ash_outlet,
+        'is_at_environment': is_at_environment,
+        'is_dysfunction': is_dysfunction,
+        'is_warning': is_warning,
+        'is_receipted': is_receipted,
+    }
 
-        command_address = self.command_definitions['get_heater_state_and_mode']['address']
-        answer_frame = self.connection.send(command_address)
+    return return_dict
 
-        state = core.get_state_from_bytes(answer_frame.payload)
+def get_configuration_from_bytes(configuration_bytes: bytes):
+    boiler_def = constants.CONFIGURATION_DEFINITION['boiler']
+    heater_circuit_def = constants.CONFIGURATION_DEFINITION['heater_circuit']
+    remote_control_def = constants.CONFIGURATION_DEFINITION['remote_control']
+    solar_def = constants.CONFIGURATION_DEFINITION['solar']
 
-        return state
+    boiler_bytes = get_integer_from_short(configuration_bytes[boiler_def['start']:boiler_def['end']])
+    heater_circuit_bytes = get_integer_from_short(configuration_bytes[heater_circuit_def['start']:heater_circuit_def['end']])
+    remote_control_bytes = get_integer_from_short(configuration_bytes[remote_control_def['start']:remote_control_def['end']])
+    solar_bytes = get_integer_from_short(configuration_bytes[solar_def['start']:solar_def['end']])
 
-    def get_mode(self):
 
-        command_address = self.command_definitions['get_heater_state_and_mode']['address']
-        answer_frame = self.connection.send(command_address)
 
-        mode = core.get_mode_from_bytes(answer_frame.payload)
+    # TODO implement
 
-        return mode
+def get_state_and_mode_from_bytes(state_mode_bytes: bytes):
+    state_mode_string = get_string_from_bytes(state_mode_bytes[constants.STATE_AND_MODE_OFFSET:])
+
+    state_mode_tuple = state_mode_string.split(';')
+    mode = state_mode_tuple[0]
+    state = state_mode_tuple[1]
+
+    return mode, state
+
+
+def get_state_from_bytes(state_mode_bytes: bytes):
+    mode, state = get_state_and_mode_from_bytes(state_mode_bytes)
+    return state
+
+
+def get_mode_from_bytes(state_mode_bytes: bytes):
+    mode, state = get_state_and_mode_from_bytes(state_mode_bytes)
+    return mode
+
+
+def is_flag_set(flag_data_bytes: bytes, position_from_right):
+    flag_data = flag_data_bytes[0]
+
+    offset = position_from_right
+    mask = 1 << ((8 * len(flag_data_bytes)) - offset)
+    return bool(flag_data & mask)
+    # TODO Check if correct
+
+def escape(data: bytes):
+    """ Escape the given data according to the s3200 documentation.
+
+    :param data: the bytes to escape
+    """
+    return replace_all(data, constants.ESCAPE_LIST)
+
+
+def unescape(data):
+    """ Unescape the given data according to the s3200 documentation.
+
+    :param data: the bytes to unescape
+    """
+
+    return replace_all(data, constants.UNESCAPE_LIST)
+
+
+def replace_all(data: bytes, dic: OrderedDict):
+    """ Replaces all occurrences of a byte.
+
+    :param data: The original bytes
+    :param dic: The OrderedDict with the original and the replace values
+    """
+
+    for i, j in dic.items():
+        data = data.replace(i, j)
+    return data
+
+
+def get_random_string(size=10, chars=string.ascii_letters + string.digits):
+    """ Get random string.
+
+    :param size: length of the random string
+    :param chars: chars the random string should contain default is ascii_letters + digits
+    """
+    return ''.join(random.choice(chars) for _ in range(size))
+
+
+class S3200Error(Exception):
+    """Base class for exceptions in this module.
+
+       Attributes:
+        msg  -- explanation of the error
+    """
+
+    def __init__(self, msg):
+        self.msg = msg
+
+
+class ShortPackError(S3200Error):
+    """Exception raised for values that would not fit into the 2byte short."""
+
+
+class ShortUnpackError(S3200Error):
+    """Exception raised for values that would not fit into the 2byte short."""
+
+
+class FrameSyntaxError(S3200Error):
+    """Exception raised when the syntax or value of a frame is not correct."""
+
+
+class ValueNotDefinedError(S3200Error):
+    """Exception raised when the value asked for is not defined id address_dict."""
+
+
+class CommandNotDefinedError(S3200Error):
+    """Exception raised when the command asked for is not defined id command_dict."""
+
+
+class CommunicationError(S3200Error):
+    """Exception raised when the command asked for is not defined id command_dict."""
