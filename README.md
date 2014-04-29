@@ -7,6 +7,7 @@ State: Alpha - Reading actual values is working.
 
 
 Code Example:
+```python
   from s3200.obj import S3200()
   
   s = S3200("/dev/ttyS0")
@@ -16,8 +17,11 @@ Code Example:
   
   status = s.get_status()
   print('Status: {0}'.format(status))
+```
   
   
 Output:
+```python
   Temperature: 42.5
   Status: STÖRUNG
+```
