@@ -37,12 +37,26 @@ class TestS3200(TestCase):
         self.assertEquals('50.04.04.14', self.s.get_version())
 
     def test_get_errors(self):
-        self.s.get_errors()
+        self.assertEquals([{'is_at_ash_outlet': False,
+                            'is_receipted': True,
+                            'number': 109,
+                            'is_dysfunction': False,
+                            'is_ongoing': False,
+                            'is_at_environment': True,
+                            'datetime': datetime.datetime(2012, 2, 4, 12, 17, 2),
+                            'is_warning': False,
+                            'text': 'Zündversuch nicht gelungen von Hand Anheizen!',
+                            'status_local_name': 'Gekommen',
+                            'is_at_heating_boiler': True,
+                            'status_name': 'New',
+                            'status': 1}], self.s.get_errors())
 
     def test_get_state(self):
         self.assertEqual('STÖRUNG', self.s.get_state())
 
     def test_get_mode(self):
         self.assertEqual('Übergangsbetr', self.s.get_mode())
+
+
 
 

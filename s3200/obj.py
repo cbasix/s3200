@@ -148,6 +148,9 @@ class S3200(object):
         return return_dict
 
     def get_state(self):
+        """ Get the state of the heater.
+
+         Example: Heizen(Heating) """
 
         command_address = self.command_definitions['get_heater_state_and_mode']['address']
         answer_frame = self.connection.send(command_address)
@@ -156,8 +159,11 @@ class S3200(object):
 
         return state
 
+    # TODO better docstrings
     def get_mode(self):
+        """ Get the mode of the heater.
 
+         Example: Übergangsbetr """
         command_address = self.command_definitions['get_heater_state_and_mode']['address']
         answer_frame = self.connection.send(command_address)
 

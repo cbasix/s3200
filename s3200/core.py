@@ -162,8 +162,8 @@ def get_error_from_bytes(error_bytes: bytes):
     return_dict = {
         'number': number,
         'status': status,
-        'status_name': '...',
-        'status_name_local': '...',
+        'status_name': constants.ERROR_STATE[status]['name'],
+        'status_local_name': constants.ERROR_STATE[status]['local_name'],
         'datetime': error_datetime,
         'text': text,
 

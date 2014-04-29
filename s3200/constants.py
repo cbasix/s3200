@@ -206,6 +206,11 @@ ERROR_DEFINITION = {
     'datetime': {'start': 5, 'end': 11},
     'text': {'start': 11, 'end': None},
 }
+ERROR_STATE = {
+    1: {'local_name': 'Gekommen', 'name': 'New'},
+    2: {'local_name': 'Gegangen', 'name': 'Gone'},
+    3: {'local_name': 'Quittiert', 'name': 'Receipted'},
+}
 
 INFO_BYTE_DEFINITION = {
     'is_ongoing': 0,
