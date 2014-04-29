@@ -90,7 +90,7 @@ VALUE_GROUP_DEFINITIONS = OrderedDict({
         'buffer_1_bottom_temperature',
         'buffer_1_pump',
     ],
-
+    # TODO auto calculate boiler_2 boiler_3 ...
 })
 
 COMMAND_DEFINITIONS = {
@@ -162,7 +162,7 @@ COMMAND_DEFINITIONS = {
         'address': b'\x50',
         'description': '',
     },
-    'get_heater_state':   {
+    'get_heater_state_and_mode':   {
         'address': b'\x51',
         'description': '',
     },
@@ -218,9 +218,11 @@ INFO_BYTE_DEFINITION = {
 }
 
 CONFIGURATION_DEFINITION = {
-    'boiler': {'start': 2, 'end': 3},
-    'heater_circuit': {'start': 3, 'end': 4},
-    'fernversteller': {'start': 4, 'end': 5},
-    'solar': {'start': 4, 'end': 5},
-     # TODO Set the right values
+    'boiler': {'start': 31, 'end': 32},
+    'heater_circuit': {'start': 37, 'end': 40},
+    'remote_control': {'start': 45, 'end': 48},
+    'solar': {'start': 63, 'end': 64},
+     # TODO local_name needed???
 }
+
+STATE_AND_MODE_OFFSET = 2
