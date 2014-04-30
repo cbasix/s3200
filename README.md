@@ -12,7 +12,7 @@ Code Example:
   
   s = S3200("/dev/ttyS0")
   
-  temperature = s.get\_value('boiler\_1\_temperature')
+  temperature = s.get_value('boiler_1_temperature')
   print('Temperature: {0}'.format(str(temperature)))
   
   status = s.get_status()
@@ -21,7 +21,7 @@ Code Example:
   
   
 Output:
-```python
+```
   Temperature: 42.5
   Status: STÖRUNG
 ```
