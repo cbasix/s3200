@@ -9,11 +9,13 @@ class S3200(object):
     """ A class representing a s3200 object. """
 
     def __init__(self, serial_port_name="/dev/ttyAMA0",
+                 readonly=True,
                  value_definitions=constants.VALUE_DEFINITIONS,
                  value_group_definitions=constants.VALUE_GROUP_DEFINITIONS,
                  command_definitions=constants.COMMAND_DEFINITIONS):
 
         self.connection = net.Connection(serial_port_name=serial_port_name)
+        self.readonly = readonly
         self.value_definitions = value_definitions
         self.value_group_definitions = value_group_definitions
         self.command_definitions = command_definitions
@@ -170,3 +172,43 @@ class S3200(object):
         mode = core.get_mode_from_bytes(answer_frame.payload)
 
         return mode
+
+    def get_menu(self):
+        pass
+
+    def get_setting(self, setting_name):
+        pass
+
+    def set_setting(self, setting_name, value):
+        if not self.readonly:
+            pass
+
+    #input
+    def get_digital_input(self, input_name):
+        pass
+
+    def set_digital_input(self, input_name, value):
+        if not self.readonly:
+            pass
+
+    def get_analog_input(self, input_name):
+        pass
+
+    def set_analog_input(self, input_name, value):
+        if not self.readonly:
+            pass
+
+    #output
+    def get_digital_output(self, output_name):
+        pass
+
+    def set_digital_output(self, output_name, value):
+        if not self.readonly:
+            pass
+
+    def get_analog_output(self, output_name):
+        pass
+
+    def set_analog_output(self, output_name, value):
+        if not self.readonly:
+            pass
