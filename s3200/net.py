@@ -6,7 +6,7 @@ except:
     print("WARN: Could not load serial module. Only dummy mode!")
 
 
-from s3200 import constants, core
+from s3200 import const, core
 from s3200.core import CommunicationError
 from s3200.test.dummy import DummySerial
 
@@ -57,9 +57,9 @@ class Frame(object):
         checksum_byte = unescaped_content[-1:]  # 04
 
         #check start bytes
-        if not start_bytes == constants.START_BYTES:
+        if not start_bytes == const.START_BYTES:
             raise CommunicationError("Start bytes must be: {0} but are: {1}".format(
-                core.get_hex_from_byte(constants.START_BYTES),
+                core.get_hex_from_byte(const.START_BYTES),
                 core.get_hex_from_byte(start_bytes)))
 
         #check checksum
@@ -89,14 +89,14 @@ class Frame(object):
         length_bytes = core.get_short_from_integer(length)
 
         #calculate checksum
-        checksum = core.calculate_checksum(constants.START_BYTES + length_bytes + self.command + self.payload)
+        checksum = core.calculate_checksum(const.START_BYTES + length_bytes + self.command + self.payload)
 
         #escape all except the start bytes
         content_unescaped = length_bytes + self.command + self.payload + checksum
         content_escaped = core.escape(content_unescaped)
 
         #build final frame
-        frame = constants.START_BYTES + content_escaped
+        frame = const.START_BYTES + content_escaped
 
         return frame
 
@@ -180,7 +180,7 @@ class Connection(object):
             byte = serial_port.read(1)[0]
             my_byte.append(byte)
 
-            if byte in constants.ESCAPED_IDENTIFIER:
+            if byte in const.ESCAPED_IDENTIFIER:
                 second_byte = serial_port.read(1)[0]
                 my_byte.append(second_byte)
 

@@ -2,16 +2,16 @@
 # -*- coding: UTF-8 -*-
 from collections import OrderedDict
 from unittest import TestCase
-from s3200.test import constants
-from s3200.obj import S3200
+from s3200.test import const
+from s3200.obj import SimpleS3200
 import datetime
 
 
 class TestS3200(TestCase):
     def setUp(self):
-        self.s = S3200('dummy',
-                       value_definitions=constants.VALUE_DEFINITIONS,
-                       value_group_definitions=constants.VALUE_GROUP_DEFINITIONS)
+        self.s = SimpleS3200('dummy',
+                       value_definitions=const.VALUE_DEFINITIONS,
+                       value_group_definitions=const.VALUE_GROUP_DEFINITIONS)
 
     def test_get_value_list(self):
         t = self.s.get_value_list('boiler_1', with_local_name=True)
@@ -56,6 +56,11 @@ class TestS3200(TestCase):
 
     def test_get_mode(self):
         self.assertEqual('Übergangsbetr', self.s.get_mode())
+
+    def test_get_menu(self):
+        item = self.s.get_menu()[0]
+        self.assertEquals("Proportionalfaktor des Mischerreglers", item["text"])
+        self.assertEquals(b'\x00\x53', item["address"])
 
 
 

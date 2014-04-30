@@ -2,23 +2,27 @@
 # -*- coding: UTF-8 -*-
 
 from collections import OrderedDict
-from s3200 import constants, core, net
+from s3200 import const, core, net
 
 
-class S3200(object):
+class SimpleS3200(object):
     """ A class representing a s3200 object. """
 
     def __init__(self, serial_port_name="/dev/ttyAMA0",
                  readonly=True,
-                 value_definitions=constants.VALUE_DEFINITIONS,
-                 value_group_definitions=constants.VALUE_GROUP_DEFINITIONS,
-                 command_definitions=constants.COMMAND_DEFINITIONS):
+                 value_definitions=const.VALUE_DEFINITIONS,
+                 value_group_definitions=const.VALUE_GROUP_DEFINITIONS,
+                 command_definitions=const.COMMAND_DEFINITIONS):
 
         self.connection = net.Connection(serial_port_name=serial_port_name)
         self.readonly = readonly
         self.value_definitions = value_definitions
         self.value_group_definitions = value_group_definitions
         self.command_definitions = command_definitions
+
+    def _test_readonly_(self):
+        if self.readonly:
+            raise core.ReadonlyError("Can not set values in readonly mode.")
 
     def get_value_list(self, group=None, with_local_name=False):
         """ Get a list of values.
@@ -174,41 +178,77 @@ class S3200(object):
         return mode
 
     def get_menu(self):
-        pass
+
+        command_start_address = self.command_definitions['get_menu_item']['address']
+        command_next_address = self.command_definitions['get_next_menu_item']['address']
+
+        output = []
+
+        error_frames = self.connection.get_list(command_start_address, command_next_address)
+
+        for frame in error_frames:
+            error = core.get_menu_item_from_bytes(frame.payload)
+            output.append(error)
+
+        return output
 
     def get_setting(self, setting_name):
-        pass
+
+        command_address = self.command_definitions['get_setting']['address']
+        answer_frame = self.connection.send(command_address)
+        # TODO Make right 
+        state = answer_frame.payload
+
+        return state
 
     def set_setting(self, setting_name, value):
-        if not self.readonly:
-            pass
+        self._test_readonly()
+        raise NotImplementedError()
 
-    #input
     def get_digital_input(self, input_name):
-        pass
+        raise NotImplementedError()
+
+    def get_digital_output(self, output_name):
+        raise NotImplementedError()
+
+    def get_analog_output(self, output_name):
+        raise NotImplementedError()
+
+
+
+
+class S3200(SimpleS3200):
+    def __init__(self):
+        super().__init__(readonly=False)
+
+    def set_force_mode(self, isForceMode: bool):
+        """ Sets the Force mode.
+
+        Force mode is a testing mode. When force mode is active you can override the input and output values
+        of the heater manually.  If the heater receives no command within 30 seconds the force mode gets
+        deactivated automatically.
+        """
+
+        self._readonly_test()
+        raise NotImplementedError()
+
+        # TODO implement enter force mode
+
+    def get_force_mode(self):
+        raise NotImplementedError()
+
+        # TODO implement get force mode
 
     def set_digital_input(self, input_name, value):
         if not self.readonly:
-            pass
-
-    def get_analog_input(self, input_name):
-        pass
-
-    def set_analog_input(self, input_name, value):
-        if not self.readonly:
-            pass
-
-    #output
-    def get_digital_output(self, output_name):
-        pass
+            raise NotImplementedError()
 
     def set_digital_output(self, output_name, value):
         if not self.readonly:
-            pass
-
-    def get_analog_output(self, output_name):
-        pass
+            raise NotImplementedError()
 
     def set_analog_output(self, output_name, value):
         if not self.readonly:
-            pass
+            raise NotImplementedError()
+
+    # TODO implement force set methods

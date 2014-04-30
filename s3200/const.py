@@ -57,6 +57,13 @@ VALUE_DEFINITIONS = OrderedDict({
     'boiler_1_pump':    {'address': b'\x00\x90', 'factor': 1, 'local_name': 'Boilerpumpenansteuerung 1'},
 })
 
+#The address of the settings
+SETTING_DEFINITIONS = OrderedDict({
+    'heating_boiler_should_temperature':   {'address': b'\x00\x1C', 'factor': None, 'local_name': 'Kessel-Solltemperatur'},
+    'start_firing':   {'address': b'\x02\x52', 'factor': None, 'local_name': 'Zündung starten'},
+
+})
+
 VALUE_GROUP_DEFINITIONS = OrderedDict({
     'important': [
         'heating_boiler_temperature',
@@ -229,5 +236,11 @@ CONFIGURATION_DEFINITION = {
     'solar': {'start': 63, 'end': 64},
      # TODO local_name needed???
 }
+MENU_ITEM_DEFINITION = {
+    'address': {'start': 25, 'end': 27},
+    'text': {'start': 29, 'end': -1},
+}
 
 STATE_AND_MODE_OFFSET = 2
+
+

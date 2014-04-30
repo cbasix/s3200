@@ -3,7 +3,7 @@
 import random
 import string
 
-from s3200 import constants
+from s3200 import const
 from collections import OrderedDict
 from datetime import datetime
 
@@ -36,7 +36,7 @@ def get_date_day_time_from_byte(date_bytes: bytes):
         Date: 15 0B 07 0A -> 21.11.; 7. Day of week = Sunday ; (20)10
     """
 
-    date_array = constants.StructDateDayTime.unpack(date_bytes)
+    date_array = const.StructDateDayTime.unpack(date_bytes)
 
     second = date_array[0]
     minute = date_array[1]
@@ -62,7 +62,7 @@ def get_date_time_from_byte(date_bytes: bytes):
         Date: 15 0B 0A -> 21.11.(20)10
     """
 
-    date_array = constants.StructDateTime.unpack(date_bytes)
+    date_array = const.StructDateTime.unpack(date_bytes)
 
     second = date_array[0]
     minute = date_array[1]
@@ -87,7 +87,7 @@ def get_integer_from_short(short_bytes: bytes):
     if len(short_bytes) != 2:
         raise ShortUnpackError("2bytes input needed {0}bytes given".format(len(short_bytes)))
 
-    temp_array = constants.StructShort.unpack(short_bytes)
+    temp_array = const.StructShort.unpack(short_bytes)
     integer = temp_array[0]
 
     return integer
@@ -103,7 +103,7 @@ def get_short_from_integer(integer: int):
         raise ShortPackError("Given value: {0} could not be represented as 2byte short. " +
                              "Allowed: 0 < value < 65025".format(integer))
 
-    temp_bytes = constants.StructShort.pack(integer)
+    temp_bytes = const.StructShort.pack(integer)
 
     return temp_bytes
 
@@ -139,31 +139,35 @@ def get_hex_from_byte(byte_data: bytes):
 def get_error_from_bytes(error_bytes: bytes):
     """ Get an error dict from bytes representation. """
 
-    number_def = constants.ERROR_DEFINITION['number']
-    info_byte_def = constants.ERROR_DEFINITION['info_byte']
-    status_def = constants.ERROR_DEFINITION['status']
-    datetime_def = constants.ERROR_DEFINITION['datetime']
-    text_def = constants.ERROR_DEFINITION['text']
+    # load the definition (what is where) from the constants
+    number_def = const.ERROR_DEFINITION['number']
+    info_byte_def = const.ERROR_DEFINITION['info_byte']
+    status_def = const.ERROR_DEFINITION['status']
+    datetime_def = const.ERROR_DEFINITION['datetime']
+    text_def = const.ERROR_DEFINITION['text']
 
+    # get the data from their position in the byte data
     number = get_integer_from_short(error_bytes[number_def['start']:number_def['end']])
     info_byte = error_bytes[info_byte_def['start']:info_byte_def['end']]
     status = get_integer_from_short(error_bytes[status_def['start']:status_def['end']])
     error_datetime = get_date_time_from_byte(error_bytes[datetime_def['start']:datetime_def['end']])
     text = get_string_from_bytes(error_bytes[text_def['start']:text_def['end']])
 
-    is_ongoing = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_ongoing'])
-    is_at_heating_boiler = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_at_heating_boiler'])
-    is_at_ash_outlet = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_at_ash_outlet'])
-    is_at_environment = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_at_environment'])
-    is_dysfunction = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_dysfunction'])
-    is_warning = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_warning'])
-    is_receipted = is_flag_set(info_byte, constants.INFO_BYTE_DEFINITION['is_receipted'])
+    # inside the info byte each bit is a flag indicating something different
+    is_ongoing = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_ongoing'])
+    is_at_heating_boiler = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_at_heating_boiler'])
+    is_at_ash_outlet = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_at_ash_outlet'])
+    is_at_environment = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_at_environment'])
+    is_dysfunction = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_dysfunction'])
+    is_warning = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_warning'])
+    is_receipted = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_receipted'])
 
+    #build the return dict
     return_dict = {
         'number': number,
         'status': status,
-        'status_name': constants.ERROR_STATE[status]['name'],
-        'status_local_name': constants.ERROR_STATE[status]['local_name'],
+        'status_name': const.ERROR_STATE[status]['name'],
+        'status_local_name': const.ERROR_STATE[status]['local_name'],
         'datetime': error_datetime,
         'text': text,
 
@@ -178,11 +182,32 @@ def get_error_from_bytes(error_bytes: bytes):
 
     return return_dict
 
+
+def get_menu_item_from_bytes(menu_item_bytes: bytes):
+
+    # load the definition (what is where) from the constants
+    address_def = const.MENU_ITEM_DEFINITION['address']
+    text_def = const.MENU_ITEM_DEFINITION['text']
+
+
+    # get the data from their position in the byte data
+    address = menu_item_bytes[address_def['start']:address_def['end']]
+    text = get_string_from_bytes(menu_item_bytes[text_def['start']:text_def['end']])
+
+    #build the return dict
+    return_dict = {
+        'address': address,
+        'text': text,
+    }
+
+    return return_dict
+
+
 def get_configuration_from_bytes(configuration_bytes: bytes):
-    boiler_def = constants.CONFIGURATION_DEFINITION['boiler']
-    heater_circuit_def = constants.CONFIGURATION_DEFINITION['heater_circuit']
-    remote_control_def = constants.CONFIGURATION_DEFINITION['remote_control']
-    solar_def = constants.CONFIGURATION_DEFINITION['solar']
+    boiler_def = const.CONFIGURATION_DEFINITION['boiler']
+    heater_circuit_def = const.CONFIGURATION_DEFINITION['heater_circuit']
+    remote_control_def = const.CONFIGURATION_DEFINITION['remote_control']
+    solar_def = const.CONFIGURATION_DEFINITION['solar']
 
     boiler_bytes = get_integer_from_short(configuration_bytes[boiler_def['start']:boiler_def['end']])
     heater_circuit_bytes = get_integer_from_short(configuration_bytes[heater_circuit_def['start']:heater_circuit_def['end']])
@@ -194,7 +219,7 @@ def get_configuration_from_bytes(configuration_bytes: bytes):
     # TODO implement
 
 def get_state_and_mode_from_bytes(state_mode_bytes: bytes):
-    state_mode_string = get_string_from_bytes(state_mode_bytes[constants.STATE_AND_MODE_OFFSET:])
+    state_mode_string = get_string_from_bytes(state_mode_bytes[const.STATE_AND_MODE_OFFSET:])
 
     state_mode_tuple = state_mode_string.split(';')
     mode = state_mode_tuple[0]
@@ -226,7 +251,7 @@ def escape(data: bytes):
 
     :param data: the bytes to escape
     """
-    return replace_all(data, constants.ESCAPE_LIST)
+    return replace_all(data, const.ESCAPE_LIST)
 
 
 def unescape(data):
@@ -235,7 +260,7 @@ def unescape(data):
     :param data: the bytes to unescape
     """
 
-    return replace_all(data, constants.UNESCAPE_LIST)
+    return replace_all(data, const.UNESCAPE_LIST)
 
 
 def replace_all(data: bytes, dic: OrderedDict):
@@ -292,3 +317,7 @@ class CommandNotDefinedError(S3200Error):
 
 class CommunicationError(S3200Error):
     """Exception raised when the command asked for is not defined id command_dict."""
+
+class ReadonlyError(S3200Error):
+    """Exception raised when trying to write a value when S3200 object is in readonly mode."""
+
