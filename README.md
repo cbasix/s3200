@@ -10,7 +10,7 @@ Code Example:
 ```python
   from s3200.obj import S3200()
   
-  s = S3200("/dev/ttyS0")
+  s = SimpleS3200("/dev/ttyS0")
   
   temperature = s.get_value('boiler_1_temperature')
   print('Temperature: {0}'.format(str(temperature)))
