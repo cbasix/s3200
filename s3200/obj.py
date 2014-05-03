@@ -6,7 +6,7 @@ from s3200 import const, core, net
 from s3200.net import Frame
 
 
-class SimpleS3200(object):
+class S3200(object):
     """ A class representing a s3200 object. """
 
     def __init__(self, serial_port_name="/dev/ttyAMA0",
@@ -258,11 +258,11 @@ class SimpleS3200(object):
 
         output = []
 
-        error_frames = self.connection.get_list(command_start_address, command_next_address)
+        available_value_frames = self.connection.get_list(command_start_address, command_next_address)
 
-        for frame in error_frames:
-            error = core.convert_bytes_to_menu_item(frame.payload)
-            output.append(error)
+        for frame in available_value_frames:
+            available_value = core.convert_structure_to_dict(frame.payload, const.AVAILABLE_VALUE_STRUCTURE)
+            output.append(available_value)
 
         return output
 

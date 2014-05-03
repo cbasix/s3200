@@ -300,8 +300,8 @@ ERROR_STRUCTURE = {
 
 AVAILABLE_VALUE_STRUCTURE = {
     'factor': {'start': 1, 'end': 3, 'type': 'short'},
-    'unit': {'start': 5, 'end': 7, 'type': 'string'},
+    'unit': {'start': 6, 'end': 7, 'type': 'string'},
     'address': {'start': 7, 'end': 9, 'type': 'string'},
-    'text': {'start': 9, 'end': None, 'type': 'string'},
+    'text': {'start': 9, 'end': -1, 'type': 'string'},
 }
 

@@ -2,13 +2,13 @@
 # -*- coding: UTF-8 -*-
 from unittest import TestCase
 from s3200.test import const
-from s3200.obj import SimpleS3200
+from s3200.obj import S3200
 import datetime
 
 
 class TestS3200(TestCase):
     def setUp(self):
-        self.s = SimpleS3200('dummy',
+        self.s = S3200('dummy',
                              value_definitions=const.VALUE_DEFINITIONS)
 
     def test_get_value(self):
@@ -96,9 +96,12 @@ class TestS3200(TestCase):
         #print("test_get_analog_output: " + str(self.s.get_analog_output('primary_air')))
         self.assertEquals(99, self.s.get_analog_output('primary_air'))
 
-    # def test_get_available_values(self):
-    #     print("test_get_available_values: " + str(self.s.get_available_values()))
-    #     self.assertEquals(0, self.s.get_available_values())
+    def test_get_available_values(self):
+        #print("test_get_available_values: " + str(self.s.get_available_values()))
+        self.assertDictEqual({'factor': 2,
+                              'text': 'Kesseltemperatur',
+                              'address': '\x00\x00',
+                              'unit': '°'}, self.s.get_available_values()[0])
 
 
 
