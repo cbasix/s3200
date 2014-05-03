@@ -47,6 +47,22 @@ class DummySerial(object):
  
         #menu next item empty
         '02 FD .. .. 38 .*': b'\x02\xfd\x00\x018J',
+        #get setting
+        '02 FD .. .. 55 .*': b'\x02\xFD\x00\xFE\x14\x55\x00\x00\x1C\xB0\x00\x00\x02\x00\x00\xA8'
+                             b'\x00\x46\x00\x5A\x00\x50\x00\x00\x00\x15',
+        #available value
+        '02 FD .. .. 31 .*': b'\x02\xFD\x00\x1B\x31\x01\x00\x02\x00\x00\x02\x00\x00\xB0\x00\x00'
+                             b'\x4B\x65\x73\x73\x65\x6C\x74\x65\x6D\x70\x65\x72\x61\x74\x75\x72'
+                             b'\x00\xDE',
+        #available value next empty
+        '02 FD .. .. 32 .*': b'\x02\xfd\x00\x011Q',
+        # digital input
+        '02 FD .. 02 00 46 .*': b'\x02\xfd\x00\x03FA\x01\x0e',
+        # digital output
+        '02 FD .. 02 00 44 .*': b'\x02\xfd\x00\x03DA\x01\x08',
+        # analog output
+        '02 FD .. 02 00 45 .*': b'\x02\xfd\x00\x03E\xffco',
+
     })
 
     def __init__(self, port=None, baud_rate=None, eight_bits=None, parity=None, stop_bits=None, timeout=None):
@@ -69,14 +85,19 @@ class DummySerial(object):
         """dummy read function
         :param length: bytes to read
         """
+
         ret = self.in_buffer[0:length]
         self.in_buffer = self.in_buffer[length:]
+
+        if len(ret) < length:
+            raise NotImplementedError("Dummy serial has nothing to answer")
+
         return ret
 
     def do_processing(self):
         for key, value in DummySerial.COMM_LIST.items():
             r = re.compile(key)
-            hex_string = core.get_hex_from_byte(bytes(self.out_buffer)).upper()
+            hex_string = core.convert_byte_to_hex(bytes(self.out_buffer)).upper()
             if r.match(hex_string):
 
                 if value == 'return':

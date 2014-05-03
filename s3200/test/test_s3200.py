@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-from collections import OrderedDict
 from unittest import TestCase
 from s3200.test import const
 from s3200.obj import SimpleS3200
@@ -10,46 +9,38 @@ import datetime
 class TestS3200(TestCase):
     def setUp(self):
         self.s = SimpleS3200('dummy',
-                       value_definitions=const.VALUE_DEFINITIONS,
-                       value_group_definitions=const.VALUE_GROUP_DEFINITIONS)
-
-    def test_get_value_list(self):
-        t = self.s.get_value_list('boiler_1', with_local_name=True)
-        self.assertEquals(OrderedDict([('boiler_1_temperature', ('Boilertemperatur 1', 2161.0)),
-                                        ('boiler_1_pump', ('Boilerpumpenansteuerung 1', 4322.0))]), t)
-        #print(t)
-        #for k, v in t.items():
-        #    print(str(v[0]) + ": " + str(v[1]))
+                             value_definitions=const.VALUE_DEFINITIONS)
 
     def test_get_value(self):
         t = self.s.get_value('residual_oxygen')
         #print(t)
-        self.assertEquals( 432.2, t)
+        self.assertEquals(432.2, t)
         #print(str(t[0]) + ": " + str(t[1]))
 
     def test_test_connection(self):
         self.assertTrue(self.s.test_connection())
 
-    def test_get_date(self):
-        self.assertEquals(datetime.datetime(2010, 11, 21, 18, 31), self.s.get_date())
+    def test_get_datetime(self):
+        self.assertEquals(datetime.datetime(2010, 11, 21, 18, 31), self.s.get_datetime())
 
     def test_get_version(self):
         self.assertEquals('50.04.04.14', self.s.get_version())
 
     def test_get_errors(self):
-        self.assertEquals([{'is_at_ash_outlet': False,
-                            'is_receipted': True,
-                            'number': 109,
-                            'is_dysfunction': False,
-                            'is_ongoing': False,
-                            'is_at_environment': True,
-                            'datetime': datetime.datetime(2012, 2, 4, 12, 17, 2),
-                            'is_warning': False,
-                            'text': 'Zündversuch nicht gelungen von Hand Anheizen!',
-                            'status_local_name': 'Gekommen',
-                            'is_at_heating_boiler': True,
-                            'status_name': 'New',
-                            'status': 1}], self.s.get_errors())
+        #print(str(self.s.get_errors()[0]))
+        self.assertDictEqual({'is_at_ash_outlet': True,
+                             'is_receipted': True,
+                             'number': 109,
+                             'is_dysfunction': False,
+                             'is_ongoing': True,
+                             'is_at_environment': False,
+                             'datetime': datetime.datetime(2012, 2, 4, 12, 17, 2),
+                             'is_warning': True,
+                             'text': 'Zündversuch nicht gelungen von Hand Anheizen!',
+                             'is_at_heating_boiler': False,
+                             'status': 1,
+                             'status_name': 'New',
+                             'status_name_local': 'Gekommen'}, self.s.get_errors()[0])
 
     def test_get_state(self):
         self.assertEqual('STÖRUNG', self.s.get_state())
@@ -61,6 +52,54 @@ class TestS3200(TestCase):
         item = self.s.get_menu()[0]
         self.assertEquals("Proportionalfaktor des Mischerreglers", item["text"])
         self.assertEquals(b'\x00\x53', item["address"])
+
+    def test_get_setting(self):
+        self.assertEquals(84, self.s.get_setting('heating_boiler_should_temperature'))
+
+    def test_get_setting_info(self):
+        #print("test_get_setting_info: " + str(self.s.get_setting_info('heating_boiler_should_temperature')))
+        self.assertDictEqual({'comma': 0,
+                              'max_value': 90,
+                              'address': bytearray(b'\x00\x1c'),
+                              'value': 84,
+                              'standard': 80,
+                              'factor': 2,
+                              'min_value': 70,
+                              'unit': '°'}, self.s.get_setting_info('heating_boiler_should_temperature'))
+
+    def test_get_configuration(self):
+        #print("test_get_configuration: " + str(self.s.get_configuration()))
+        self.assertDictEqual({'boiler_7': False,
+                              'boiler_4': False,
+                              'boiler_6': False,
+                              'boiler_5': False,
+                              'solar_2': False,
+                              'boiler_2': False,
+                              'boiler_3': False,
+                              'heater_circuit_1': True,
+                              'boiler_8': False,
+                              'solar_1': False,
+                              'remote_control_2': False,
+                              'heater_circuit_2': True,
+                              'remote_control_1': False,
+                              'boiler_1': True}, self.s.get_configuration())
+
+    def test_get_digital_input(self):
+        #print("test_get_digital_input: " + str(self.s.get_digital_input('door_contact')))
+        self.assertEquals(True, self.s.get_digital_input('door_contact'))
+
+    def test_get_digital_output(self):
+        #print("test_get_digital_output: " + str(self.s.get_digital_output('heating_circuit_pump_1')))
+        self.assertEquals(True, self.s.get_digital_output('heating_circuit_pump_1'))
+
+    def test_get_analog_output(self):
+        #print("test_get_analog_output: " + str(self.s.get_analog_output('primary_air')))
+        self.assertEquals(99, self.s.get_analog_output('primary_air'))
+
+    # def test_get_available_values(self):
+    #     print("test_get_available_values: " + str(self.s.get_available_values()))
+    #     self.assertEquals(0, self.s.get_available_values())
+
 
 
 

@@ -5,7 +5,8 @@ import string
 
 from s3200 import const
 from collections import OrderedDict
-from datetime import datetime
+from datetime import datetime, time
+
 
 #---HELPER METHODS---
 def calculate_checksum(data_bytes: bytes):
@@ -22,7 +23,7 @@ def calculate_checksum(data_bytes: bytes):
     return bytes([crc])
 
 
-def get_date_day_time_from_byte(date_bytes: bytes):
+def convert_bytes_to_datedaytime(date_bytes: bytes):
     """ Get a date object from its 7byte representation.
 
     :param date_bytes: the 7 byte long representation of a date
@@ -48,7 +49,26 @@ def get_date_day_time_from_byte(date_bytes: bytes):
 
     return datetime(year, month, day, hour, minute, second)
 
-def get_date_time_from_byte(date_bytes: bytes):
+
+def get_bytes_from_date_day_time(datetime_to_set: datetime):
+    """ Get the 7byte representation of a date object.
+    """
+
+    date_list = []
+
+    date_list[0] = datetime_to_set.second
+    date_list[1] = datetime_to_set.minute
+    date_list[2] = datetime_to_set.hour
+    date_list[3] = datetime_to_set.day
+    date_list[4] = datetime_to_set.month
+    date_list[5] = datetime_to_set.isoweekday()  # 1=Monday 7=Sunday
+    date_list[6] = datetime_to_set.year - 2000  # 2000 + byte
+
+    date_bytes = const.StructDateDayTime.pack(date_list)
+
+    return date_bytes
+
+def convert_byte_to_datetime(date_bytes: bytes):
     """ Get a date object from its 6byte representation.
 
     :param date_bytes: the 6 byte long representation of a date
@@ -74,7 +94,7 @@ def get_date_time_from_byte(date_bytes: bytes):
     return datetime(year, month, day, hour, minute, second)
 
 
-def get_integer_from_short(short_bytes: bytes):
+def convert_short_to_integer(short_bytes: bytes):
     """ Get a integer of its 2byte representation.
 
     :param short_bytes: two bytes representing a short
@@ -93,7 +113,7 @@ def get_integer_from_short(short_bytes: bytes):
     return integer
 
 
-def get_short_from_integer(integer: int):
+def convert_integer_to_short(integer: int):
     """ Get the 2byte representation of an integer.
 
     :param integer: an int to convert to a short. Max. 65025
@@ -108,7 +128,7 @@ def get_short_from_integer(integer: int):
     return temp_bytes
 
 
-def get_string_from_bytes(byte_data: bytes):
+def convert_bytes_to_string(byte_data: bytes):
     """ String from bytes.
 
     :param byte_data: data to convert
@@ -118,7 +138,7 @@ def get_string_from_bytes(byte_data: bytes):
     return string_data
 
 
-def get_bytes_from_string(string_data: str):
+def convert_string_to_bytes(string_data: str):
     """ Bytes from string.
 
     :param string_data: data to convert
@@ -128,7 +148,7 @@ def get_bytes_from_string(string_data: str):
     return byte_data
 
 
-def get_hex_from_byte(byte_data: bytes):
+def convert_byte_to_hex(byte_data: bytes):
     """ Convert bytes to a hex string of format 0A FD C3.
 
     :param byte_data: the byte data to convert to hex
@@ -136,63 +156,27 @@ def get_hex_from_byte(byte_data: bytes):
     return ' '.join(['{:02x}'.format(i) for i in byte_data])
 
 
-def get_error_from_bytes(error_bytes: bytes):
+def get_flag_from_bytes(data_bytes: bytes, position: int):
+    return is_flag_set(data_bytes, position_from_left=position)
+
+
+def convert_bytes_to_error(error_bytes: bytes):
     """ Get an error dict from bytes representation. """
 
-    # load the definition (what is where) from the constants
-    number_def = const.ERROR_DEFINITION['number']
-    info_byte_def = const.ERROR_DEFINITION['info_byte']
-    status_def = const.ERROR_DEFINITION['status']
-    datetime_def = const.ERROR_DEFINITION['datetime']
-    text_def = const.ERROR_DEFINITION['text']
-
-    # get the data from their position in the byte data
-    number = get_integer_from_short(error_bytes[number_def['start']:number_def['end']])
-    info_byte = error_bytes[info_byte_def['start']:info_byte_def['end']]
-    status = get_integer_from_short(error_bytes[status_def['start']:status_def['end']])
-    error_datetime = get_date_time_from_byte(error_bytes[datetime_def['start']:datetime_def['end']])
-    text = get_string_from_bytes(error_bytes[text_def['start']:text_def['end']])
-
-    # inside the info byte each bit is a flag indicating something different
-    is_ongoing = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_ongoing'])
-    is_at_heating_boiler = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_at_heating_boiler'])
-    is_at_ash_outlet = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_at_ash_outlet'])
-    is_at_environment = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_at_environment'])
-    is_dysfunction = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_dysfunction'])
-    is_warning = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_warning'])
-    is_receipted = is_flag_set(info_byte, const.INFO_BYTE_DEFINITION['is_receipted'])
-
-    #build the return dict
-    return_dict = {
-        'number': number,
-        'status': status,
-        'status_name': const.ERROR_STATE[status]['name'],
-        'status_local_name': const.ERROR_STATE[status]['local_name'],
-        'datetime': error_datetime,
-        'text': text,
-
-        'is_ongoing': is_ongoing,
-        'is_at_heating_boiler': is_at_heating_boiler,
-        'is_at_ash_outlet': is_at_ash_outlet,
-        'is_at_environment': is_at_environment,
-        'is_dysfunction': is_dysfunction,
-        'is_warning': is_warning,
-        'is_receipted': is_receipted,
-    }
+    return_dict = convert_structure_to_dict(error_bytes, const.ERROR_STRUCTURE)
 
     return return_dict
 
 
-def get_menu_item_from_bytes(menu_item_bytes: bytes):
+def convert_bytes_to_menu_item(menu_item_bytes: bytes):
 
     # load the definition (what is where) from the constants
-    address_def = const.MENU_ITEM_DEFINITION['address']
-    text_def = const.MENU_ITEM_DEFINITION['text']
-
+    address_def = const.MENU_ITEM_STRUCTURE['address']
+    text_def = const.MENU_ITEM_STRUCTURE['text']
 
     # get the data from their position in the byte data
     address = menu_item_bytes[address_def['start']:address_def['end']]
-    text = get_string_from_bytes(menu_item_bytes[text_def['start']:text_def['end']])
+    text = convert_bytes_to_string(menu_item_bytes[text_def['start']:text_def['end']])
 
     #build the return dict
     return_dict = {
@@ -203,48 +187,113 @@ def get_menu_item_from_bytes(menu_item_bytes: bytes):
     return return_dict
 
 
-def get_configuration_from_bytes(configuration_bytes: bytes):
-    boiler_def = const.CONFIGURATION_DEFINITION['boiler']
-    heater_circuit_def = const.CONFIGURATION_DEFINITION['heater_circuit']
-    remote_control_def = const.CONFIGURATION_DEFINITION['remote_control']
-    solar_def = const.CONFIGURATION_DEFINITION['solar']
-
-    boiler_bytes = get_integer_from_short(configuration_bytes[boiler_def['start']:boiler_def['end']])
-    heater_circuit_bytes = get_integer_from_short(configuration_bytes[heater_circuit_def['start']:heater_circuit_def['end']])
-    remote_control_bytes = get_integer_from_short(configuration_bytes[remote_control_def['start']:remote_control_def['end']])
-    solar_bytes = get_integer_from_short(configuration_bytes[solar_def['start']:solar_def['end']])
+def convert_bytes_to_configuration(configuration_bytes: bytes):
+    return convert_structure_to_dict(configuration_bytes, const.CONFIGURATION_STRUCTURE)
 
 
+def convert_structure_to_dict(data_bytes, configuration_dict):
+    return_dict = {}
+    for structure_name, structure_data in configuration_dict.items():
+        assert isinstance(structure_data, dict)
 
-    # TODO implement
+        structure_type = structure_data['type']
+        structure_bytes = data_bytes[structure_data['start']:structure_data['end']]
+        value = None
 
-def get_state_and_mode_from_bytes(state_mode_bytes: bytes):
-    state_mode_string = get_string_from_bytes(state_mode_bytes[const.STATE_AND_MODE_OFFSET:])
+        if structure_type == 'short':
+            value = convert_short_to_integer(structure_bytes)
 
-    state_mode_tuple = state_mode_string.split(';')
+        elif structure_type == 'bytes':
+            value = structure_bytes
+
+        elif structure_type == 'datetime':
+            value = convert_byte_to_datetime(structure_bytes)
+
+        elif structure_type == 'string':
+            value = convert_bytes_to_string(structure_bytes)
+
+        elif structure_type == 'flag':
+            value = get_flag_from_bytes(structure_bytes, structure_data['bit'])
+
+        elif structure_type == 'time10':
+            value = convert_bytes_to_time10(structure_bytes)
+
+        elif structure_type == 'reference':
+            reference_type = structure_data['reference_type']
+            value = convert_bytes_to_time10(structure_bytes)
+
+        # if it is a reference the value should come from the referenced item
+        if 'reference' in structure_data:
+            reference_dict = structure_data['reference']
+            value = reference_dict[value]
+
+        return_dict[structure_name] = value
+
+    return return_dict
+
+
+def convert_bytes_to_time10(data_bytes):
+    data_int = convert_short_to_integer(data_bytes)  # 96h = 150d 0 15:00
+
+    if data_int == 255:  # FFh -> no time set
+        return None
+    elif data_int > 240:
+        raise InvalidValueError('Time value must be between 0 and 240')
+
+    data_str = str(data_int)  # "150"
+
+    hours = int(data_str[:2])  # 15
+    minutes = int(data_str[2:]) * 10  # 0 -> time10 has only 10minutes resolution
+
+    return_value = time(hours, minutes)
+    return return_value
+
+
+def convert_bytes_to_state_and_mode(state_mode_bytes: bytes):
+    state_and_mode = convert_structure_to_dict(state_mode_bytes, const.STATE_AND_MODE_STRUCTURE)
+    state_and_mode_string = state_and_mode['text']
+
+    state_mode_tuple = state_and_mode_string.split(';')
     mode = state_mode_tuple[0]
     state = state_mode_tuple[1]
 
-    return mode, state
+    return state, mode
 
 
-def get_state_from_bytes(state_mode_bytes: bytes):
-    mode, state = get_state_and_mode_from_bytes(state_mode_bytes)
+def convert_bytes_to_state(state_mode_bytes: bytes):
+    state, mode = convert_bytes_to_state_and_mode(state_mode_bytes)
     return state
 
 
-def get_mode_from_bytes(state_mode_bytes: bytes):
-    mode, state = get_state_and_mode_from_bytes(state_mode_bytes)
+def convert_bytes_to_mode(state_mode_bytes: bytes):
+    state, mode = convert_bytes_to_state_and_mode(state_mode_bytes)
     return mode
 
 
-def is_flag_set(flag_data_bytes: bytes, position_from_right):
-    flag_data = flag_data_bytes[0]
+def convert_bytes_to_setting(payload: bytes):
+    return convert_structure_to_dict(payload, const.SETTING_STRUCTURE)
 
-    offset = position_from_right
-    mask = 1 << ((8 * len(flag_data_bytes)) - offset)
-    return bool(flag_data & mask)
-    # TODO Check if correct
+
+def convert_bytes_to_available_value(payload: bytes):
+    return convert_structure_to_dict(payload, const.AVAILABLE_VALUE_STRUCTURE)
+
+def convert_time_slot_to_bytes(item, weekday, time_slot_1_start, time_slot_1_end, time_slot_2_start, time_slot_2_end,
+                             time_slot_3_start, time_slot_3_end, time_slot_4_start, time_slot_4_end):
+
+    raise NotImplementedError
+    #return data_bytes
+
+def is_flag_set(flag_data_bytes: bytes, position_from_left):
+    bin_string = ""
+    for byte in flag_data_bytes:
+        temp = bin(byte)[2:]  # cut off 0b prefix
+        temp = '00000000' + temp  # fill up with 0
+        temp = temp[-8:]  # get the last 8
+        bin_string += temp
+
+    #print('bin_string len: ' + str(len(bin_string)) + ' asked position: ' + str(position_from_left))
+    return bool(bin_string[position_from_left] == '1')
+
 
 def escape(data: bytes):
     """ Escape the given data according to the s3200 documentation.
@@ -318,6 +367,16 @@ class CommandNotDefinedError(S3200Error):
 class CommunicationError(S3200Error):
     """Exception raised when the command asked for is not defined id command_dict."""
 
+
 class ReadonlyError(S3200Error):
     """Exception raised when trying to write a value when S3200 object is in readonly mode."""
 
+
+class InvalidValueError(S3200Error):
+    """ Exception raised when an unusable value is returned.
+    """
+
+
+class ValueSetError(S3200Error):
+    """ Exception raised when an error occurred during setting a value
+    """

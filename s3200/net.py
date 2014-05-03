@@ -59,8 +59,8 @@ class Frame(object):
         #check start bytes
         if not start_bytes == const.START_BYTES:
             raise CommunicationError("Start bytes must be: {0} but are: {1}".format(
-                core.get_hex_from_byte(const.START_BYTES),
-                core.get_hex_from_byte(start_bytes)))
+                core.convert_byte_to_hex(const.START_BYTES),
+                core.convert_byte_to_hex(start_bytes)))
 
         #check checksum
         calculated_checksum = core.calculate_checksum(start_bytes + length_bytes + command_byte + payload_bytes)
@@ -69,8 +69,8 @@ class Frame(object):
         if not checksum_byte[0] == calculated_checksum[0]:
             raise CommunicationError(
                 "Checksum byte doesnt match. Received:{0} Calculated:{1}. Complete frame:{2}".format(
-                    core.get_hex_from_byte(checksum_byte), core.get_hex_from_byte(calculated_checksum),
-                    core.get_hex_from_byte(frame_bytes)))
+                    core.convert_byte_to_hex(checksum_byte), core.convert_byte_to_hex(calculated_checksum),
+                    core.convert_byte_to_hex(frame_bytes)))
 
         #build return frame
         return Frame(command_byte, payload_bytes)
@@ -86,7 +86,7 @@ class Frame(object):
         #calculate length
         length = len(self.command) + len(self.payload)
 
-        length_bytes = core.get_short_from_integer(length)
+        length_bytes = core.convert_integer_to_short(length)
 
         #calculate checksum
         checksum = core.calculate_checksum(const.START_BYTES + length_bytes + self.command + self.payload)
@@ -101,8 +101,8 @@ class Frame(object):
         return frame
 
     def __str__(self):
-        return "<Frame command:{0} payload:{1}>".format(core.get_hex_from_byte(self.command),
-                                                        core.get_hex_from_byte(self.payload))
+        return "<Frame command:{0} payload:{1}>".format(core.convert_byte_to_hex(self.command),
+                                                        core.convert_byte_to_hex(self.payload))
 
 
 class Connection(object):
@@ -163,7 +163,7 @@ class Connection(object):
         if len(unescaped_length_bytes) != 2:
             raise core.CommunicationError("Didn't get 2 length bytes. Maybe timeout, or other reading error.")
 
-        length = core.get_integer_from_short(unescaped_length_bytes)
+        length = core.convert_short_to_integer(unescaped_length_bytes)
 
         read_bytes = Connection._read_escaped(serial_port, length + 1)  # +1 for read the checksum too
         complete_frame = frame_start_bytes + length_bytes + read_bytes
