@@ -40,11 +40,11 @@ COMMAND_DEFINITIONS = {
     },
     'get_available_value':   {
         'address': b'\x31',
-        'description': '',
+        'description': 'Get the first value from the available values list',
     },
     'get_next_available_value':   {
         'address': b'\x32',
-        'description': '',
+        'description': 'Get the next value from the available values list',
     },
     'get_menu_item':   {
         'address': b'\x37',

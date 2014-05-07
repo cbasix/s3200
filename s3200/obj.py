@@ -58,7 +58,7 @@ class S3200(object):
             value = value / value_definition['factor']
 
             if with_local_name:
-                return_list.append(value_definition['local_name'], value)
+                return_list.append((value_definition['local_name'], value))
             else:
                 return_list.append(value)
 
@@ -128,11 +128,10 @@ class S3200(object):
         """ Set the date and time of the heater. """
         self._test_readonly_()
 
+        command_address = self.command_definitions['set_datetime']['address']
         date_bytes = core.get_bytes_from_date_day_time(datetime_to_set)
 
-        command_address = self.command_definitions['set_datetime']['address']
-        payload = date_bytes
-        answer_frame = self.connection.send(command_address, payload)
+        answer_frame = self.connection.send(command_address, date_bytes)
 
         # TODO Test answer frame
 
@@ -143,7 +142,6 @@ class S3200(object):
         command_next_address = self.command_definitions['get_next_error']['address']
 
         output = []
-
         error_frames = self.connection.get_list(command_start_address, command_next_address)
 
         for frame in error_frames:
@@ -158,7 +156,6 @@ class S3200(object):
         command_next_address = self.command_definitions['get_next_time_slot']['address']
 
         output = []
-
         time_slots = self.connection.get_list(command_start_address, command_next_address)
 
         for frame in time_slots:
@@ -184,15 +181,15 @@ class S3200(object):
         raise NotImplementedError()
 
         data_bytes = core.convert_time_slot_to_bytes(item,
-                                                   weekday,
-                                                   time_slot_1_start,
-                                                   time_slot_1_end,
-                                                   time_slot_2_start,
-                                                   time_slot_2_end,
-                                                   time_slot_3_start,
-                                                   time_slot_3_end,
-                                                   time_slot_4_start,
-                                                   time_slot_4_end,)
+                                                     weekday,
+                                                     time_slot_1_start,
+                                                     time_slot_1_end,
+                                                     time_slot_2_start,
+                                                     time_slot_2_end,
+                                                     time_slot_3_start,
+                                                     time_slot_3_end,
+                                                     time_slot_4_start,
+                                                     time_slot_4_end,)
 
         command_address = self.command_definitions['set_time_slot']['address']
         frame = Frame(command_address, data_bytes)
@@ -242,7 +239,6 @@ class S3200(object):
         command_next_address = self.command_definitions['get_next_menu_item']['address']
 
         output = []
-
         error_frames = self.connection.get_list(command_start_address, command_next_address)
 
         for frame in error_frames:
@@ -257,7 +253,6 @@ class S3200(object):
         command_next_address = self.command_definitions['get_next_available_value']['address']
 
         output = []
-
         available_value_frames = self.connection.get_list(command_start_address, command_next_address)
 
         for frame in available_value_frames:
@@ -272,7 +267,6 @@ class S3200(object):
         value_address = self.setting_definitions[setting_name]['address']
 
         answer_frame = self.connection.send(command_address, value_address)
-
         setting = core.convert_bytes_to_setting(answer_frame.payload)
 
         return_value = setting['value'] / setting['factor']
@@ -288,7 +282,6 @@ class S3200(object):
         value_address = self.setting_definitions[setting_name]['address']
 
         answer_frame = self.connection.send(command_address, value_address)
-
         setting = core.convert_bytes_to_setting(answer_frame.payload)
 
         setting['value'] = setting['value'] / setting['factor']
@@ -298,9 +291,31 @@ class S3200(object):
 
         return setting
 
-    def set_setting(self, setting_name, value):
-        self._test_readonly()
-        raise NotImplementedError()
+    def set_setting(self, setting_name: str, value: int):
+
+        self._test_readonly_()
+
+        old_value = self.get_setting(setting_name)
+        if old_value == value:
+            return
+
+        command_address = self.command_definitions['set_setting']['address']
+        value_address = self.setting_definitions[setting_name]['address']
+        factor = self.setting_definitions[setting_name]['factor']
+
+        value = value * factor
+        payload = value_address + core.convert_integer_to_short(value)
+        frame = Frame(command_address, payload)
+        answer_frame = self.connection.send_frame(frame)
+
+        try:
+            second_answer_frame = self.connection.read_frame()
+        except:
+            raise core.ValueSetError("Setting could not be set. Maybe the value you want to set is out of range? "
+                                     "Use get_setting_info to check.")
+
+        if frame != answer_frame or frame != second_answer_frame:
+            raise core.ValueSetError("Setting could not be set. Heater returned different values")
 
     def get_digital_input(self, input_name):
 
@@ -308,9 +323,9 @@ class S3200(object):
         value_address = self.digital_input_definitions[input_name]
 
         answer_frame = self.connection.send(command_address, value_address)
-
         digital_input = core.convert_structure_to_dict(answer_frame.payload, const.DIGITAL_INPUT_STRUCTURE)
 
+        return_bool = None
         if digital_input['mode'] == 'A':  # \x41 = A = Auto
             return_bool = bool(digital_input['value'] == 1)
         elif digital_input['mode'] == '0':  # \x30 = 0 = False
@@ -326,24 +341,24 @@ class S3200(object):
         value_address = self.digital_output_definitions[output_name]
 
         answer_frame = self.connection.send(command_address, value_address)
-
         digital_output = core.convert_structure_to_dict(answer_frame.payload, const.DIGITAL_OUTPUT_STRUCTURE)
 
+        return_bool = None
         if digital_output['mode'] == 'A':  # \x41 = A = Auto
-            return bool(digital_output['value'] == 1)
+            return_bool = bool(digital_output['value'] == 1)
         elif digital_output['mode'] == '0':  # \x30 = 0 = False
-            return False
+            return_bool = False
         elif digital_output['mode'] == '1':  # \x31 = 1 = True
-            return True
+            return_bool = True
 
-        return None
+        return return_bool
 
     def get_analog_output(self, output_name):
+
         command_address = self.command_definitions['get_analog_output']['address']
         value_address = self.analog_output_definitions[output_name]
 
         answer_frame = self.connection.send(command_address, value_address)
-
         analog_output = core.convert_structure_to_dict(answer_frame.payload, const.ANALOG_OUTPUT_STRUCTURE)
 
         if analog_output['mode'] == 255:  # Auto mode
@@ -359,7 +374,7 @@ class S3200(object):
         deactivated automatically.
         """
 
-        self._readonly_test()
+        self._test_readonly_()
         raise NotImplementedError()
 
         # TODO implement enter force mode

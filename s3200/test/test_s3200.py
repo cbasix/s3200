@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 from unittest import TestCase
-from s3200.test import const
+from s3200 import const
 from s3200.obj import S3200
+from s3200 import core
 import datetime
 
 
@@ -102,6 +103,17 @@ class TestS3200(TestCase):
                               'text': 'Kesseltemperatur',
                               'address': '\x00\x00',
                               'unit': '°'}, self.s.get_available_values()[0])
+
+    def test_set_setting(self):
+        self.assertRaises(self.s.set_setting('heating_boiler_should_temperature', 42), core.ReadonlyError)
+        self.s = S3200('dummy', readonly=False)
+
+        self.s.set_setting('heating_boiler_should_temperature', 84) # 84 is already set
+        self.assertRaises(self.s.set_setting('heating_boiler_should_temperature', 120), core.ValueSetError)
+        self.s.set_setting('heating_boiler_should_temperature', 81)
+
+        self.s = S3200('dummy', readonly=True)
+
 
 
 
