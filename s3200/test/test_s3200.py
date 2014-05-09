@@ -105,12 +105,12 @@ class TestS3200(TestCase):
                               'unit': '°'}, self.s.get_available_values()[0])
 
     def test_set_setting(self):
-        self.assertRaises(self.s.set_setting('heating_boiler_should_temperature', 42), core.ReadonlyError)
+        self.assertRaises(core.ReadonlyError, self.s.set_setting, 'heating_boiler_should_temperature', 42)
         self.s = S3200('dummy', readonly=False)
 
-        self.s.set_setting('heating_boiler_should_temperature', 84) # 84 is already set
-        self.assertRaises(self.s.set_setting('heating_boiler_should_temperature', 120), core.ValueSetError)
+        self.s.set_setting('heating_boiler_should_temperature', 84)  # 84 is already set
         self.s.set_setting('heating_boiler_should_temperature', 81)
+        self.assertRaises(core.ValueSetError, self.s.set_setting, 'heating_boiler_should_temperature', 120),
 
         self.s = S3200('dummy', readonly=True)
 

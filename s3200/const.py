@@ -56,7 +56,7 @@ COMMAND_DEFINITIONS = {
     },
     'set_setting':   {
         'address': b'\x39',
-        'description': '',
+        'description': 'Set a specific setting',
     },
     'get_configuration':   {
         'address': b'\x40',
@@ -305,3 +305,7 @@ AVAILABLE_VALUE_STRUCTURE = {
     'text': {'start': 9, 'end': -1, 'type': 'string'},
 }
 
+
+FORCE_MODE_STRUCTURE = {
+    'is_force_active': {'start': 0, 'end': 1, 'type': 'flag', 'bit': 0},
+}

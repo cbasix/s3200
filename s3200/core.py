@@ -148,7 +148,7 @@ def convert_string_to_bytes(string_data: str):
     return byte_data
 
 
-def convert_byte_to_hex(byte_data: bytes):
+def convert_bytes_to_hex(byte_data: bytes):
     """ Convert bytes to a hex string of format 0A FD C3.
 
     :param byte_data: the byte data to convert to hex
@@ -381,8 +381,8 @@ class Frame(object):
         #check start bytes
         if not start_bytes == const.START_BYTES:
             raise CommunicationError("Start bytes must be: {0} but are: {1}".format(
-                convert_byte_to_hex(const.START_BYTES),
-                convert_byte_to_hex(start_bytes)))
+                convert_bytes_to_hex(const.START_BYTES),
+                convert_bytes_to_hex(start_bytes)))
 
         #check checksum
         calculated_checksum = calculate_checksum(start_bytes + length_bytes + command_byte + payload_bytes)
@@ -391,8 +391,8 @@ class Frame(object):
         if not checksum_byte[0] == calculated_checksum[0]:
             raise CommunicationError(
                 "Checksum byte doesnt match. Received:{0} Calculated:{1}. Complete frame:{2}".format(
-                    convert_byte_to_hex(checksum_byte), convert_byte_to_hex(calculated_checksum),
-                    convert_byte_to_hex(frame_bytes)))
+                    convert_bytes_to_hex(checksum_byte), convert_bytes_to_hex(calculated_checksum),
+                    convert_bytes_to_hex(frame_bytes)))
 
         #build return frame
         return Frame(command_byte, payload_bytes)
@@ -423,8 +423,8 @@ class Frame(object):
         return frame
 
     def __str__(self):
-        return "<Frame command:{0} payload:{1}>".format(convert_byte_to_hex(self.command),
-                                                        convert_byte_to_hex(self.payload))
+        return "<Frame command:{0} payload:{1}>".format(convert_bytes_to_hex(self.command),
+                                                        convert_bytes_to_hex(self.payload))
 
 
 class S3200Error(Exception):
@@ -474,3 +474,17 @@ class InvalidValueError(S3200Error):
 class ValueSetError(S3200Error):
     """ Exception raised when an error occurred during setting a value
     """
+
+
+class NothingToReadError(S3200Error):
+    """ Exception raised when an error occurred during setting a value
+    """
+
+class WrongNumberOfAnswerFramesError(S3200Error):
+    """ Exception raised when an error occurred during setting a value
+    """
+    def __init__(self, msg, expected, got, base_error):
+        super().__init__(msg)
+        self.expected = expected
+        self.got = got
+        self.base_error = base_error

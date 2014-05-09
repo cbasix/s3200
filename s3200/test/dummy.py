@@ -50,6 +50,10 @@ class DummySerial(object):
         #get setting
         '02 FD .. .. 55 .*': b'\x02\xFD\x00\xFE\x14\x55\x00\x00\x1C\xB0\x00\x00\x02\x00\x00\xA8'
                              b'\x00\x46\x00\x5A\x00\x50\x00\x00\x00\x15',
+        #set setting out of range 120
+        '02 FD 00 05 39 00 1C 00 F0 71': b'\x02\xfd\x00\x059\x00\x1c\x00x\xe9', #02 FD 00 05 39 00 1C 00 A2 87
+        #set setting right
+        '02 FD .. .. 39 .*': 'return*2',
         #available value
         '02 FD .. .. 31 .*': b'\x02\xFD\x00\x1B\x31\x01\x00\x02\x00\x00\x02\x00\x00\xB0\x00\x00'
                              b'\x4B\x65\x73\x73\x65\x6C\x74\x65\x6D\x70\x65\x72\x61\x74\x75\x72'
@@ -97,11 +101,13 @@ class DummySerial(object):
     def do_processing(self):
         for key, value in DummySerial.COMM_LIST.items():
             r = re.compile(key)
-            hex_string = core.convert_byte_to_hex(bytes(self.out_buffer)).upper()
+            hex_string = core.convert_bytes_to_hex(bytes(self.out_buffer)).upper()
             if r.match(hex_string):
 
                 if value == 'return':
                     value = bytes(self.out_buffer)
+                if value == 'return*2':
+                    value = bytes(self.out_buffer) + bytes(self.out_buffer)
 
                 self.out_buffer = bytearray() #  .clear()
 
@@ -109,4 +115,7 @@ class DummySerial(object):
                     self.in_buffer.append(i)
                 print("Dummy in: {0} out: {1}".format(str(hex_string), str(value)))
                 return
+
+    def inWaiting(self):
+        return len(self.in_buffer)
 

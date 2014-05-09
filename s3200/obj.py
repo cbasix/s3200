@@ -306,15 +306,22 @@ class S3200(object):
         value = value * factor
         payload = value_address + core.convert_integer_to_short(value)
         frame = Frame(command_address, payload)
-        answer_frame = self.connection.send_frame(frame)
+        #print(core.convert_bytes_to_hex(frame.to_bytes()))
 
+        # TODO make better
         try:
-            second_answer_frame = self.connection.read_frame()
-        except:
-            raise core.ValueSetError("Setting could not be set. Maybe the value you want to set is out of range? "
+            answer_frames = self.connection.send_frame(frame, read_answer_frames=2)
+        except core.WrongNumberOfAnswerFramesError as e:
+            if e.got == 1:
+                raise core.ValueSetError("Setting could not be set. Maybe the value you want to set is out of range? "
                                      "Use get_setting_info to check.")
+            else:
+                raise e.base_error
+        assert(isinstance(answer_frames[0], Frame))
+        assert(isinstance(answer_frames[1], Frame))
+        #TODO WORK HERE
 
-        if frame != answer_frame or frame != second_answer_frame:
+        if str(frame) != str(answer_frames[0]) or str(frame) != str(answer_frames[1]):
             raise core.ValueSetError("Setting could not be set. Heater returned different values")
 
     def get_digital_input(self, input_name):
@@ -366,34 +373,76 @@ class S3200(object):
         else:
             return analog_output['mode']  # Manual override
 
-    def set_force_mode(self, is_force_mode: bool):
-        """ Sets the Force mode.
-
-        Force mode is a testing mode. When force mode is active you can override the input and output values
-        of the heater manually.  If the heater receives no command within 30 seconds the force mode gets
-        deactivated automatically.
-        """
-
-        self._test_readonly_()
-        raise NotImplementedError()
-
-        # TODO implement enter force mode
-
-    def get_force_mode(self):
-        raise NotImplementedError()
-
-        # TODO implement get force mode
-
-    def set_digital_input(self, input_name, value):
-        if not self.readonly:
-            raise NotImplementedError()
-
-    def set_digital_output(self, output_name, value):
-        if not self.readonly:
-            raise NotImplementedError()
-
-    def set_analog_output(self, output_name, value):
-        if not self.readonly:
-            raise NotImplementedError()
-
-    # TODO implement force set methods
+    # def set_force_mode(self, is_force_mode: bool):
+    #     """ Sets the Force mode.
+    #
+    #     Force mode is a testing mode. When force mode is active you can override the input and output values
+    #     of the heater manually.  If the heater receives no command within 30 seconds the force mode gets
+    #     deactivated automatically.
+    #     """
+    #
+    #     self._test_readonly_()
+    #     raise NotImplementedError()
+    #
+    #     # TODO implement enter force mode
+    #
+    # def is_force_active(self):
+    #     command_address = self.command_definitions['get_force_mode']['address']
+    #
+    #     answer_frame = self.connection.send(command_address)
+    #
+    #     result_dict = core.convert_structure_to_dict(answer_frame.payload, const.FORCE_MODE_STRUCTURE)
+    #
+    #     return result_dict['is_force_active']
+    #
+    #
+    # def set_digital_input(self, input_name, value: bool):
+    #     self._test_readonly_()
+    #
+    #     assert(isinstance(bool, value))
+    #     raise NotImplementedError()
+    #
+    #     command_address = self.command_definitions['set_digital_input']['address']
+    #     value_address = self.digital_input_definitions[input_name]
+    #
+    #     if value:
+    #         value = b'\x01'
+    #     else:
+    #         value = b'\x00'
+    #
+    #     answer_frame = self.connection.send(command_address, value_address + value)
+    #
+    #     # TODO test answer frame
+    #
+    # def set_digital_output(self, output_name, value):
+    #     self._test_readonly_()
+    #
+    #     assert(isinstance(bool, value))
+    #     raise NotImplementedError()
+    #
+    #     command_address = self.command_definitions['set_digital_output']['address']
+    #     value_address = self.digital_output_definitions[output_name]
+    #
+    #     if value:
+    #         value = b'\x01'
+    #     else:
+    #         value = b'\x00'
+    #
+    #     answer_frame = self.connection.send(command_address, value_address + value)
+    #
+    #     #TODO test answer frame
+    #
+    # def set_analog_output(self, output_name, value):
+    #     self._test_readonly_()
+    #
+    #     assert(isinstance(int, value))
+    #     raise NotImplementedError()
+    #
+    #     command_address = self.command_definitions['set_digital_input']['address']
+    #     value_address = self.digital_output_definitions[output_name]
+    #
+    #     value = core.convert_integer_to_short(value)
+    #
+    #     answer_frame = self.connection.send(command_address, value_address + value)
+    #
+    #     #TODO test answer frame

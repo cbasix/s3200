@@ -33,7 +33,7 @@ class Connection(object):
             serial_port = Serial(self.serial_port_name, 57600, EIGHTBITS, PARITY_NONE, STOPBITS_ONE, timeout=3)
         return serial_port
 
-    def send_frame(self, frame):
+    def send_frame(self, frame, read_answer_frames=1):
         """ Sends one frame and receives the answer frame
 
         :param frame: the frame to send
@@ -48,42 +48,35 @@ class Connection(object):
             #print(convertToHexStr(frame.toBytes()))
             serial_port.write(frame.to_bytes())
 
+            answer_frames = []
             #read the answer bytes
-            answer_bytes = Connection._read_one_frame(serial_port)
+            for i in range(read_answer_frames):
+                answer_bytes = Connection._read_one_frame(serial_port)
+                #make a frame from the bytes
+                answer_frame = Frame.from_bytes(answer_bytes)
+                answer_frames.append(answer_frame)
 
-            #make a frame from the bytes
-            answer_frame = Frame.from_bytes(answer_bytes)
-
-        except Exception as e:
+        except core.NothingToReadError as e:
             serial_port.flushInput()
-            raise e
+            # TODO Specify the correct exception instead of the general exception
+            raise core.WrongNumberOfAnswerFramesError("Got wrong no of answer frames",
+                                                      read_answer_frames, len(answer_frames), e)
 
         finally:
             serial_port.close()
 
-        return answer_frame
-
-    def read_frame(self):
-        serial_port = self.open_serial()
-
-        try:
-            #read the frame
-            answer_bytes = Connection._read_one_frame(serial_port)
-
-            #make a frame from the bytes
-            answer_frame = Frame.from_bytes(answer_bytes)
-
-        except Exception as e:
-            serial_port.flushInput()
-            raise e
-
-        finally:
-            serial_port.close()
+        if len(answer_frames) > 1:
+            return answer_frames
+        else:
+            return answer_frames[0]
 
     @staticmethod
     def _read_one_frame(serial_port):
 
         frame_start_bytes = serial_port.read(2)
+
+        if serial_port.inWaiting() == 0:
+            raise core.NothingToReadError("No Bytes to Read")
 
         #get length
         length_bytes = Connection._read_escaped(serial_port, 2)
