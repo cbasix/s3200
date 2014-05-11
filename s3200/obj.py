@@ -4,6 +4,10 @@
 from datetime import datetime, time
 from s3200 import const, core, net
 from s3200.net import Frame
+import logging
+
+
+logger = logging.getLogger('s3200')
 
 
 class S3200(object):
@@ -118,7 +122,7 @@ class S3200(object):
         answer_frame = self.connection.send(command_address)
 
         #first 4bytes are the software version the rest is for the date
-        date_bytes = answer_frame.payload[4:]
+        date_bytes = answer_frame.payload[4:11]
 
         #convert into . separated string
         return_date = core.convert_bytes_to_datedaytime(date_bytes)

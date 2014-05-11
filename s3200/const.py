@@ -202,13 +202,14 @@ TIME_SLOT_DEFINITIONS = {
 
 ERROR_STATE = {
     1: 'New',
-    2: 'Gone',
-    3: 'Receipted',
+    2: 'Quittiert',
+    4: 'Gone',
 }
 ERROR_STATE_LOCAL = {
     1: 'Gekommen',
-    2: 'Gegangen',
-    3: 'Quittiert',
+    2: 'Quittiert',
+    4: 'Gegangen',
+
 }
 TIME_SLOT_REVERSED = OrderedDict((v, k) for k, v in TIME_SLOT_DEFINITIONS.items())
 

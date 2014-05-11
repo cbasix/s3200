@@ -1,15 +1,19 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-try:
-    from serial import Serial, EIGHTBITS, PARITY_NONE, STOPBITS_ONE
-except:
-    print("WARN: Could not load serial module. Only dummy mode!")
+
 
 
 from s3200 import const, core
 from s3200.core import CommunicationError, Frame
 from s3200.test.dummy import DummySerial
+import logging
 
+logger = logging.getLogger('s3200')
+
+try:
+    from serial import Serial, EIGHTBITS, PARITY_NONE, STOPBITS_ONE
+except:
+    logger.error("WARN: Could not load serial module. Only dummy mode!")
 
 class Connection(object):
     """ A class representing a serial connection to a s3200 device. """
@@ -42,16 +46,17 @@ class Connection(object):
         """
 
         serial_port = self.open_serial()
+        answer_frames = []
 
         try:
             #send the frame
-            #print(convertToHexStr(frame.toBytes()))
+            logger.debug('sending: ' + str(frame.to_bytes()))
             serial_port.write(frame.to_bytes())
 
-            answer_frames = []
             #read the answer bytes
             for i in range(read_answer_frames):
                 answer_bytes = Connection._read_one_frame(serial_port)
+                logger.debug('read answer:' + str(answer_bytes))
                 #make a frame from the bytes
                 answer_frame = Frame.from_bytes(answer_bytes)
                 answer_frames.append(answer_frame)
@@ -89,8 +94,6 @@ class Connection(object):
         read_bytes = Connection._read_escaped(serial_port, length + 1)  # +1 for read the checksum too
         complete_frame = frame_start_bytes + length_bytes + read_bytes
 
-        # print(convertToHexStr(completeFrame))
-
         return complete_frame
 
     @staticmethod
@@ -113,9 +116,11 @@ class Connection(object):
         output = []
         answer_frame = self.send(command_start_address)
 
-        while len(answer_frame.payload) > 0:
+        while answer_frame.payload != b'\x00':  # TODO add constant
+            logger.debug('get_list payload: ' + str(answer_frame.payload))
             output.append(answer_frame)
 
             answer_frame = self.send(command_next_address)
+            logger.debug('get_list len: ' + str(len(output)))
 
         return output

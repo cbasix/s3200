@@ -22,10 +22,11 @@ class DummySerial(object):
         # answer to 41 sw version and current datetime
         '02 FD .. .. 41 .*': b'\x02\xFD\x00\x0C\x41\x50\x04\x04\x14\x00\x1F\x12\x15\x0B\x07\x0A\x38',
         # error buffer get_error
-        '02 FD .. .. 47 .*': b'\x02\xfd\x009G\x01\x00m\xa3\x01\x02\x00\xfe\x12\x0c\x04\x02\x00\x0c' +
-                             b'Z\xfcndversuch nicht gelungen von Hand Anheizen!\xbc',
-        # error buffer get_next_error EMPTY
-        '02 FD .. .. 48 .*': b'\x02\xfd\x00\x01\x48\xda',
+        '02 FD .. .. 47 .*': b'\x02\xfd\x009G\x01\x00m\xa2\x04%&\n\x0b\x04\rZ\xfcndversuch nicht gelungen von Hand Anheizen!\x92',
+                                #b'\x02\xfd\x009G\x01\x00m\xa3\x01\x02\x00\xfe\x12\x0c\x04\x02\x00\x0c' +
+                             #b'Z\xfcndversuch nicht gelungen von Hand Anheizen!\xbc',
+        # error buffer get_next_error EMPTY bytearray(b'\x02\xfd\x00\x01G\xcb')
+        '02 FD .. .. 48 .*': b'\x02\xfd\x00\x02\x00G\x00\xce',
                             #b'\x02\xFD\x00\x02\x47\xCE',
                              #b'\x02\xFD\x00\x02\x00\x47\x00\xCE'
         #get configuration
@@ -46,7 +47,7 @@ class DummySerial(object):
                              b'\x72\x65\x67\x6C\x65\x72\x73\x00\x7D',
  
         #menu next item empty
-        '02 FD .. .. 38 .*': b'\x02\xfd\x00\x018J',
+        '02 FD .. .. 38 .*': b'\x02\xfd\x00\x02\x008\x00\x4f',
         #get setting
         '02 FD .. .. 55 .*': b'\x02\xFD\x00\xFE\x14\x55\x00\x00\x1C\xB0\x00\x00\x02\x00\x00\xA8'
                              b'\x00\x46\x00\x5A\x00\x50\x00\x00\x00\x15',
@@ -59,7 +60,7 @@ class DummySerial(object):
                              b'\x4B\x65\x73\x73\x65\x6C\x74\x65\x6D\x70\x65\x72\x61\x74\x75\x72'
                              b'\x00\xDE',
         #available value next empty
-        '02 FD .. .. 32 .*': b'\x02\xfd\x00\x011Q',
+        '02 FD .. .. 32 .*': b'\x02\xfd\x00\x02\x001\x00\x54',
         # digital input
         '02 FD .. 02 00 46 .*': b'\x02\xfd\x00\x03FA\x01\x0e',
         # digital output
@@ -94,8 +95,7 @@ class DummySerial(object):
         self.in_buffer = self.in_buffer[length:]
 
         if len(ret) < length:
-            raise NotImplementedError("Dummy serial has nothing to answer")
-
+            raise NotImplementedError("Dummy has not enough bytes.")
         return ret
 
     def do_processing(self):
@@ -115,6 +115,8 @@ class DummySerial(object):
                     self.in_buffer.append(i)
                 print("Dummy in: {0} out: {1}".format(str(hex_string), str(value)))
                 return
+        raise NotImplementedError("out_buff: " + core.convert_bytes_to_hex(self.out_buffer) +
+                                  " in_buff: " + str(self.in_buffer))
 
     def inWaiting(self):
         return len(self.in_buffer)

@@ -6,6 +6,25 @@ import string
 from s3200 import const
 from collections import OrderedDict
 from datetime import datetime, time
+import logging
+
+#---LOGGING---
+# create logger with 'spam_application'
+logger = logging.getLogger('s3200')
+logger.setLevel(logging.DEBUG)
+# create file handler which logs even debug messages
+#fh = logging.FileHandler('spam.log')
+#fh.setLevel(logging.DEBUG)
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+#fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+# add the handlers to the logger
+#logger.addHandler(fh)
+logger.addHandler(ch)
 
 
 #---HELPER METHODS---
@@ -56,13 +75,13 @@ def get_bytes_from_date_day_time(datetime_to_set: datetime):
 
     date_list = []
 
-    date_list[0] = datetime_to_set.second
-    date_list[1] = datetime_to_set.minute
-    date_list[2] = datetime_to_set.hour
-    date_list[3] = datetime_to_set.day
-    date_list[4] = datetime_to_set.month
-    date_list[5] = datetime_to_set.isoweekday()  # 1=Monday 7=Sunday
-    date_list[6] = datetime_to_set.year - 2000  # 2000 + byte
+    date_list.append(datetime_to_set.second)
+    date_list.append(datetime_to_set.minute)
+    date_list.append(datetime_to_set.hour)
+    date_list.append(datetime_to_set.day)
+    date_list.append(datetime_to_set.month)
+    date_list.append(datetime_to_set.isoweekday())  # 1=Monday 7=Sunday
+    date_list.append(datetime_to_set.year - 2000)  # 2000 + byte
 
     date_bytes = const.StructDateDayTime.pack(date_list)
 
@@ -191,13 +210,22 @@ def convert_bytes_to_configuration(configuration_bytes: bytes):
     return convert_structure_to_dict(configuration_bytes, const.CONFIGURATION_STRUCTURE)
 
 
+
 def convert_structure_to_dict(data_bytes, configuration_dict):
+
+    logger.debug('Loaded structure dict: ' + str(configuration_dict) + ' for usage on: ' + str(data_bytes))
+
     return_dict = {}
     for structure_name, structure_data in configuration_dict.items():
+
         assert isinstance(structure_data, dict)
+
+        logger.debug('LoadStructure: ' + structure_name )
 
         structure_type = structure_data['type']
         structure_bytes = data_bytes[structure_data['start']:structure_data['end']]
+
+        logger.debug('Structure extracted bytes: ' + str(structure_bytes))
         value = None
 
         if structure_type == 'short':
@@ -225,7 +253,12 @@ def convert_structure_to_dict(data_bytes, configuration_dict):
         # if it is a reference the value should come from the referenced item
         if 'reference' in structure_data:
             reference_dict = structure_data['reference']
-            value = reference_dict[value]
+            try:
+                value = reference_dict[value]
+            except KeyError as e:
+                raise ReferenceValueNotInConst(str(e)) from e
+
+        logger.debug('Structure converted data: ' + str(value))
 
         return_dict[structure_name] = value
 
@@ -434,7 +467,7 @@ class S3200Error(Exception):
         msg  -- explanation of the error
     """
 
-    def __init__(self, msg):
+    def __init__(self, msg=''):
         self.msg = msg
 
 
@@ -488,3 +521,7 @@ class WrongNumberOfAnswerFramesError(S3200Error):
         self.expected = expected
         self.got = got
         self.base_error = base_error
+
+class ReferenceValueNotInConst(S3200Error):
+    """ Exception raised when value is references that is not defined in const
+    """

@@ -9,6 +9,7 @@ import datetime
 
 class TestS3200(TestCase):
     def setUp(self):
+        self.maxDiff = None
         self.s = S3200('dummy',
                              value_definitions=const.VALUE_DEFINITIONS)
 
@@ -30,18 +31,18 @@ class TestS3200(TestCase):
     def test_get_errors(self):
         #print(str(self.s.get_errors()[0]))
         self.assertDictEqual({'is_at_ash_outlet': True,
-                             'is_receipted': True,
+                             'is_receipted': False,
                              'number': 109,
                              'is_dysfunction': False,
                              'is_ongoing': True,
                              'is_at_environment': False,
-                             'datetime': datetime.datetime(2012, 2, 4, 12, 17, 2),
+                             'datetime': datetime.datetime(2013, 4, 11, 10, 38, 37),
                              'is_warning': True,
                              'text': 'Zündversuch nicht gelungen von Hand Anheizen!',
                              'is_at_heating_boiler': False,
-                             'status': 1,
-                             'status_name': 'New',
-                             'status_name_local': 'Gekommen'}, self.s.get_errors()[0])
+                             'status': 4,
+                             'status_name': 'Gone',
+                             'status_name_local': 'Gegangen'}, self.s.get_errors()[0])
 
     def test_get_state(self):
         self.assertEqual('STÖRUNG', self.s.get_state())
