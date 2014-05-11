@@ -110,7 +110,7 @@ class Connection(object):
 
         return bytes(my_byte)
 
-    def get_list(self, command_start_address: bytes, command_next_address: bytes):
+    def get_list(self, command_start_address: bytes, command_next_address: bytes, max_loops=500):
         """ Get all items of a list """
 
         output = []
@@ -122,5 +122,9 @@ class Connection(object):
 
             answer_frame = self.send(command_next_address)
             logger.debug('get_list len: ' + str(len(output)))
+
+            #prevent endless loops
+            if len(output) > max_loops:
+                raise ValueError("Reached max_loops: " + str(max_loops))
 
         return output

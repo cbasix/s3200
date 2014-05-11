@@ -13,22 +13,22 @@ class TestS3200(TestCase):
         self.s = S3200('dummy',
                              value_definitions=const.VALUE_DEFINITIONS)
 
-    def test_get_value(self):
+    def test_get_value(self):  #ok
         t = self.s.get_value('residual_oxygen')
         #print(t)
         self.assertEquals(432.2, t)
         #print(str(t[0]) + ": " + str(t[1]))
 
-    def test_test_connection(self):
+    def test_test_connection(self):  #ok
         self.assertTrue(self.s.test_connection())
 
-    def test_get_datetime(self):
+    def test_get_datetime(self): #ok
         self.assertEquals(datetime.datetime(2010, 11, 21, 18, 31), self.s.get_datetime())
 
-    def test_get_version(self):
+    def test_get_version(self):  #ok '50.04.05.09'
         self.assertEquals('50.04.04.14', self.s.get_version())
 
-    def test_get_errors(self):
+    def test_get_errors(self):  #ok
         #print(str(self.s.get_errors()[0]))
         self.assertDictEqual({'is_at_ash_outlet': True,
                              'is_receipted': False,
@@ -44,21 +44,21 @@ class TestS3200(TestCase):
                              'status_name': 'Gone',
                              'status_name_local': 'Gegangen'}, self.s.get_errors()[0])
 
-    def test_get_state(self):
+    def test_get_state(self):  #ok
         self.assertEqual('STÖRUNG', self.s.get_state())
 
-    def test_get_mode(self):
+    def test_get_mode(self):  #ok
         self.assertEqual('Übergangsbetr', self.s.get_mode())
 
-    def test_get_menu(self):
+    def test_get_menu(self):  #NO
         item = self.s.get_menu()[0]
         self.assertEquals("Proportionalfaktor des Mischerreglers", item["text"])
         self.assertEquals(b'\x00\x53', item["address"])
 
-    def test_get_setting(self):
+    def test_get_setting(self):  #ok
         self.assertEquals(84, self.s.get_setting('heating_boiler_should_temperature'))
 
-    def test_get_setting_info(self):
+    def test_get_setting_info(self):  #ok
         #print("test_get_setting_info: " + str(self.s.get_setting_info('heating_boiler_should_temperature')))
         self.assertDictEqual({'comma': 0,
                               'max_value': 90,
@@ -69,7 +69,7 @@ class TestS3200(TestCase):
                               'min_value': 70,
                               'unit': '°'}, self.s.get_setting_info('heating_boiler_should_temperature'))
 
-    def test_get_configuration(self):
+    def test_get_configuration(self):  #ok
         #print("test_get_configuration: " + str(self.s.get_configuration()))
         self.assertDictEqual({'boiler_7': False,
                               'boiler_4': False,
@@ -86,11 +86,11 @@ class TestS3200(TestCase):
                               'remote_control_1': False,
                               'boiler_1': True}, self.s.get_configuration())
 
-    def test_get_digital_input(self):
+    def test_get_digital_input(self):  #no
         #print("test_get_digital_input: " + str(self.s.get_digital_input('door_contact')))
         self.assertEquals(True, self.s.get_digital_input('door_contact'))
 
-    def test_get_digital_output(self):
+    def test_get_digital_output(self):  #no
         #print("test_get_digital_output: " + str(self.s.get_digital_output('heating_circuit_pump_1')))
         self.assertEquals(True, self.s.get_digital_output('heating_circuit_pump_1'))
 
@@ -98,7 +98,7 @@ class TestS3200(TestCase):
         #print("test_get_analog_output: " + str(self.s.get_analog_output('primary_air')))
         self.assertEquals(99, self.s.get_analog_output('primary_air'))
 
-    def test_get_available_values(self):
+    def test_get_available_values(self):  #no
         #print("test_get_available_values: " + str(self.s.get_available_values()))
         self.assertDictEqual({'factor': 2,
                               'text': 'Kesseltemperatur',
