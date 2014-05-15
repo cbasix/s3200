@@ -69,10 +69,10 @@ class S3200(object):
             else:
                 return_list.append(value)
 
-            if len(args) == 1:
-                return return_list[0]
-            else:
-                return return_list
+        if len(args) == 1:
+            return return_list[0]
+        else:
+            return return_list
 
 
     def test_connection(self):
@@ -246,7 +246,7 @@ class S3200(object):
         command_next_address = self.command_definitions['get_next_menu_item']['address']
 
         output = []
-        error_frames = self.connection.get_list(command_start_address, command_next_address)
+        error_frames = self.connection.get_list(command_start_address, command_next_address, max_loops=5000)
 
         for frame in error_frames:
             error = core.convert_bytes_to_menu_item(frame.payload)

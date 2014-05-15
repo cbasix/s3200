@@ -50,7 +50,7 @@ class TestS3200(TestCase):
     def test_get_mode(self):  #ok
         self.assertEqual('Übergangsbetr', self.s.get_mode())
 
-    def test_get_menu(self):  #NO
+    def test_get_menu(self):  #ok
         item = self.s.get_menu()[0]
         self.assertEquals("Proportionalfaktor des Mischerreglers", item["text"])
         self.assertEquals(b'\x00\x53', item["address"])
@@ -98,7 +98,7 @@ class TestS3200(TestCase):
         #print("test_get_analog_output: " + str(self.s.get_analog_output('primary_air')))
         self.assertEquals(99, self.s.get_analog_output('primary_air'))
 
-    def test_get_available_values(self):  #no
+    def test_get_available_values(self):  #ok
         #print("test_get_available_values: " + str(self.s.get_available_values()))
         self.assertDictEqual({'factor': 2,
                               'text': 'Kesseltemperatur',

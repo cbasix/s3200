@@ -17,7 +17,7 @@ logger.setLevel(logging.DEBUG)
 #fh.setLevel(logging.DEBUG)
 # create console handler with a higher log level
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+ch.setLevel(logging.INFO)
 # create formatter and add it to the handlers
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 #fh.setFormatter(formatter)
@@ -232,22 +232,18 @@ def convert_structure_to_dict(data_bytes, configuration_dict):
             value = convert_short_to_integer(structure_bytes)
 
         elif structure_type == 'bytes':
-            value = structure_bytes
+            value = bytes(structure_bytes)
 
         elif structure_type == 'datetime':
             value = convert_byte_to_datetime(structure_bytes)
 
         elif structure_type == 'string':
-            value = convert_bytes_to_string(structure_bytes)
+            value = str(convert_bytes_to_string(structure_bytes))
 
         elif structure_type == 'flag':
-            value = get_flag_from_bytes(structure_bytes, structure_data['bit'])
+            value = bool(get_flag_from_bytes(structure_bytes, structure_data['bit']))
 
         elif structure_type == 'time10':
-            value = convert_bytes_to_time10(structure_bytes)
-
-        elif structure_type == 'reference':
-            reference_type = structure_data['reference_type']
             value = convert_bytes_to_time10(structure_bytes)
 
         # if it is a reference the value should come from the referenced item

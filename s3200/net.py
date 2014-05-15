@@ -116,11 +116,15 @@ class Connection(object):
         output = []
         answer_frame = self.send(command_start_address)
 
-        while answer_frame.payload != b'\x00':  # TODO add constant
+        while answer_frame.payload != b'\x00' :  # TODO add constant
             logger.debug('get_list payload: ' + str(answer_frame.payload))
-            output.append(answer_frame)
 
-            answer_frame = self.send(command_next_address)
+            if answer_frame.payload == b'\x01' :
+                logger.debug('ignore payload: ' + str(answer_frame.payload))
+            else:
+                output.append(answer_frame)
+
+            answer_frame = self.send(command_next_address, b'\x01')
             logger.debug('get_list len: ' + str(len(output)))
 
             #prevent endless loops

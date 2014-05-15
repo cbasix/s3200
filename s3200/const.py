@@ -302,7 +302,7 @@ ERROR_STRUCTURE = {
 AVAILABLE_VALUE_STRUCTURE = {
     'factor': {'start': 1, 'end': 3, 'type': 'short'},
     'unit': {'start': 6, 'end': 7, 'type': 'string'},
-    'address': {'start': 7, 'end': 9, 'type': 'string'},
+    'address': {'start': 7, 'end': 9, 'type': 'bytes'},
     'text': {'start': 9, 'end': -1, 'type': 'string'},
 }
 

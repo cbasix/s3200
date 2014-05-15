@@ -4,6 +4,10 @@ from collections import OrderedDict
 
 import re
 from s3200 import core
+import logging
+
+
+logger = logging.getLogger('s3200')
 
 
 # noinspection PyPep8Naming,PyPep8Naming
@@ -113,7 +117,7 @@ class DummySerial(object):
 
                 for i in value:
                     self.in_buffer.append(i)
-                print("Dummy in: {0} out: {1}".format(str(hex_string), str(value)))
+                logger.info("Dummy in: {0} out: {1}".format(str(hex_string), str(value)))
                 return
         raise NotImplementedError("out_buff: " + core.convert_bytes_to_hex(self.out_buffer) +
                                   " in_buff: " + str(self.in_buffer))
