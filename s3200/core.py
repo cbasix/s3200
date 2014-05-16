@@ -11,13 +11,13 @@ import logging
 #---LOGGING---
 # create logger with 'spam_application'
 logger = logging.getLogger('s3200')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARN)
 # create file handler which logs even debug messages
-#fh = logging.FileHandler('spam.log')
-#fh.setLevel(logging.DEBUG)
+#fh = logging.FileHandler('input_output.log')
+#fh.setLevel(logging.INFO)
 # create console handler with a higher log level
 ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
+ch.setLevel(logging.DEBUG)
 # create formatter and add it to the handlers
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 #fh.setFormatter(formatter)

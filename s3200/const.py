@@ -171,19 +171,19 @@ SETTING_DEFINITIONS = OrderedDict({
 })
 
 DIGITAL_INPUT_DEFINITIONS = {
-    'door_contact': b'\x00',
-    'stb': b'\x01',
-    'emergency_off': b'\x01',
-    'heating_boiler_release':b'\x1F'
+    'door_contact': b'\x00\x00',
+    'stb': b'\x00\x01',
+    'emergency_off': b'\x00\x01',
+    'heating_boiler_release':b'\x00\x1F'
 }
 DIGITAL_OUTPUT_DEFINITIONS = {
-    'heating_circuit_pump_1': b'\x00',
-    'heating_circuit_pump_2': b'\x01',
+    'heating_circuit_pump_1': b'\x00\x00',
+    'heating_circuit_pump_2': b'\x00\x01',
     #...
 }
 ANALOG_OUTPUT_DEFINITIONS = {
-    'primary_air': b'\x00',
-    'secondary_air': b'\x01',
+    'primary_air': b'\x00\x00',
+    'secondary_air': b'\x00\x01',
     #...
 }
 

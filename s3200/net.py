@@ -57,13 +57,13 @@ class Connection(object):
             for i in range(read_answer_frames):
                 answer_bytes = Connection._read_one_frame(serial_port)
                 logger.debug('read answer:' + str(answer_bytes))
+                #wrong set_setting returns 2x -> logger.info("'"+str(core.convert_bytes_to_hex(frame.to_bytes()))+"'"+': ' + str(answer_bytes)+',')
                 #make a frame from the bytes
                 answer_frame = Frame.from_bytes(answer_bytes)
                 answer_frames.append(answer_frame)
 
         except core.NothingToReadError as e:
             serial_port.flushInput()
-            # TODO Specify the correct exception instead of the general exception
             raise core.WrongNumberOfAnswerFramesError("Got wrong no of answer frames",
                                                       read_answer_frames, len(answer_frames), e)
 

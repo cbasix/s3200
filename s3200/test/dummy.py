@@ -8,7 +8,7 @@ import logging
 
 
 logger = logging.getLogger('s3200')
-
+# TODO remove dummy integrate into unittests dummy expected input -> expected output
 
 # noinspection PyPep8Naming,PyPep8Naming
 class DummySerial(object):
@@ -31,6 +31,7 @@ class DummySerial(object):
                              #b'Z\xfcndversuch nicht gelungen von Hand Anheizen!\xbc',
         # error buffer get_next_error EMPTY bytearray(b'\x02\xfd\x00\x01G\xcb')
         '02 FD .. .. 48 .*': b'\x02\xfd\x00\x02\x00G\x00\xce',
+        '02 FD .. 02 00 48 .*': b'\x02\xfd\x00\x02\x00G\x00\xce',
                             #b'\x02\xFD\x00\x02\x47\xCE',
                              #b'\x02\xFD\x00\x02\x00\x47\x00\xCE'
         #get configuration
@@ -49,9 +50,10 @@ class DummySerial(object):
                              b'\x00\xF7\x50\x72\x6F\x70\x6F\x72\x74\x69\x6F\x6E\x61\x6C\x66\x61'
                              b'\x6B\x74\x6F\x72\x20\x64\x65\x73\x20\x4D\x69\x73\x63\x68\x65\x72'
                              b'\x72\x65\x67\x6C\x65\x72\x73\x00\x7D',
- 
+
         #menu next item empty
         '02 FD .. .. 38 .*': b'\x02\xfd\x00\x02\x008\x00\x4f',
+        '02 FD .. 02 00 38 .*': b'\x02\xfd\x00\x02\x008\x00\x4f',
         #get setting
         '02 FD .. .. 55 .*': b'\x02\xFD\x00\xFE\x14\x55\x00\x00\x1C\xB0\x00\x00\x02\x00\x00\xA8'
                              b'\x00\x46\x00\x5A\x00\x50\x00\x00\x00\x15',
@@ -65,12 +67,13 @@ class DummySerial(object):
                              b'\x00\xDE',
         #available value next empty
         '02 FD .. .. 32 .*': b'\x02\xfd\x00\x02\x001\x00\x54',
+        '02 FD .. 02 00 32 .*': b'\x02\xfd\x00\x02\x001\x00\x54',
         # digital input
-        '02 FD .. 02 00 46 .*': b'\x02\xfd\x00\x03FA\x01\x0e',
+        '02 FD .. .. 46 .*': b'\x02\xfd\x00\x03FA\x01\x0e',
         # digital output
-        '02 FD .. 02 00 44 .*': b'\x02\xfd\x00\x03DA\x01\x08',
+        '02 FD .. .. 44 .*': b'\x02\xfd\x00\x03DA\x01\x08',
         # analog output
-        '02 FD .. 02 00 45 .*': b'\x02\xfd\x00\x03E\xffco',
+        '02 FD .. .. 45 .*': b'\x02\xfd\x00\x03E\xffco',
 
     })
 
@@ -99,7 +102,7 @@ class DummySerial(object):
         self.in_buffer = self.in_buffer[length:]
 
         if len(ret) < length:
-            raise NotImplementedError("Dummy has not enough bytes.")
+            raise core.NothingToReadError("Dummy has not enough bytes.")
         return ret
 
     def do_processing(self):

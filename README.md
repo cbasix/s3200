@@ -5,8 +5,9 @@ A Python3 package for controlling the Fröling heating system with S3200 lambdat
 
 State: Alpha
 
-Not Implemented: set_force_mode, set_setting and set_time_slot
-Implemented: Reading and writing all values except the above.
+Implemented: Reading and writing all values.
+Not Implemented: force_mode and set_time_slot
+
 
 Code Example:
 ```python

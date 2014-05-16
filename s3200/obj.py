@@ -32,8 +32,8 @@ class S3200(object):
         self.digital_output_definitions = digital_output_definitions
         self.analog_output_definitions = analog_output_definitions
 
-        if not (readonly or serial_port_name == 'dummy'):
-            raise NotImplementedError('Currently only readonly mode is supported.')
+        #if not (readonly or serial_port_name == 'dummy'):
+            #raise NotImplementedError('Currently only readonly mode is supported.')
 
     def _test_readonly_(self):
         if self.readonly:
