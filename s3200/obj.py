@@ -158,6 +158,7 @@ class S3200(object):
         return output
 
     def get_time_slots(self):
+        """ Get the currently set time slots. """
 
         command_start_address = self.command_definitions['get_time_slot']['address']
         command_next_address = self.command_definitions['get_next_time_slot']['address']
@@ -184,6 +185,8 @@ class S3200(object):
                       time_slot_4_start: time,
                       time_slot_4_end: time,
                       ):
+        """ Set a timeslot. NOT IMPLEMENTED YET. """
+
         self._test_readonly_()
         raise NotImplementedError()
 
@@ -241,6 +244,7 @@ class S3200(object):
         return mode
 
     def get_menu(self):
+        """Get the complete menu structure. """
 
         command_start_address = self.command_definitions['get_menu_item']['address']
         command_next_address = self.command_definitions['get_next_menu_item']['address']
@@ -255,6 +259,7 @@ class S3200(object):
         return output
 
     def get_available_values(self):
+        """Get all available values from the heater. """
 
         command_start_address = self.command_definitions['get_available_value']['address']
         command_next_address = self.command_definitions['get_next_available_value']['address']
@@ -269,6 +274,7 @@ class S3200(object):
         return output
 
     def get_setting(self, setting_name):
+        """Get the specified setting from the heater. """
 
         command_address = self.command_definitions['get_setting']['address']
         value_address = self.setting_definitions[setting_name]['address']
@@ -284,6 +290,7 @@ class S3200(object):
         return return_value
 
     def get_setting_info(self, setting_name):
+        """Get the specified setting value, min_value, max_value, standard_value and others. """
 
         command_address = self.command_definitions['get_setting']['address']
         value_address = self.setting_definitions[setting_name]['address']
@@ -299,7 +306,7 @@ class S3200(object):
         return setting
 
     def set_setting(self, setting_name: str, value: int):
-
+        """Set the specified setting to the given value."""
         self._test_readonly_()
 
         old_value = self.get_setting(setting_name)
@@ -332,6 +339,7 @@ class S3200(object):
             raise core.ValueSetError("Setting could not be set. Heater returned different values")
 
     def get_digital_input(self, input_name):
+        """Get the state of a digital input."""
 
         command_address = self.command_definitions['get_digital_input']['address']
         value_address = self.digital_input_definitions[input_name]
@@ -350,6 +358,7 @@ class S3200(object):
         return return_bool
 
     def get_digital_output(self, output_name):
+        """Get the state of a digital output."""
 
         command_address = self.command_definitions['get_digital_output']['address']
         value_address = self.digital_output_definitions[output_name]
@@ -368,7 +377,7 @@ class S3200(object):
         return return_bool
 
     def get_analog_output(self, output_name):
-
+        """Get the state of a analog output."""
         command_address = self.command_definitions['get_analog_output']['address']
         value_address = self.analog_output_definitions[output_name]
 
