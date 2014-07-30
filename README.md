@@ -3,7 +3,7 @@ s3200
 
 A Python3 package for controlling the Fröling heating system with S3200 lambdatronic control over the maintenance interface.
 
-State: Alpha
+State: Alpha in work
 
 Implemented: Reading and writing all values.
 Not Implemented: force_mode and set_time_slot
